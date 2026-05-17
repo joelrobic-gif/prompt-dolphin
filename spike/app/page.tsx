@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
+import Image from "next/image";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Model = "claude" | "chatgpt" | "gemini" | "copilot" | "grok";
@@ -89,12 +90,11 @@ const ARCHETYPES: Record<Archetype, Omit<PromptParts, "task">> = {
   },
 };
 
-// ─── Model adapters — each model has optimal idioms ───────────────────────────
+// ─── Model adapters ───────────────────────────────────────────────────────────
 function applyAdapter(parts: PromptParts, model: Model): string {
   const { role, context, task, format, constraints, critique } = parts;
   switch (model) {
     case "claude":
-      // Claude: XML section tags, critique block, adaptive extended thinking trigger
       return [
         `<role>\n${role}\n</role>`,
         `<context>\nBefore generating, read the task carefully. ${context}\n</context>`,
@@ -103,9 +103,7 @@ function applyAdapter(parts: PromptParts, model: Model): string {
         `<critique>\nBefore finalizing: ${critique}\nIf any answer is no, identify the specific failure and revise before outputting.\n</critique>`,
         `### New Input:\n${task}`,
       ].join("\n\n");
-
     case "chatgpt":
-      // GPT-5: "You are..." role assertion, markdown headers, numbered constraints
       return [
         `You are ${role}.`,
         `## Task\n${task}`,
@@ -114,9 +112,7 @@ function applyAdapter(parts: PromptParts, model: Model): string {
         `## Constraints\n${constraints}`,
         `## Before you respond\nVerify: ${critique}`,
       ].join("\n\n");
-
     case "gemini":
-      // Gemini Pro: natural language, conversational structure, verification step
       return [
         `You are ${role}.`,
         `Here is my task:\n${task}`,
@@ -125,9 +121,7 @@ function applyAdapter(parts: PromptParts, model: Model): string {
         `As you work, ensure:\n${constraints}`,
         `Before giving your final answer, verify: ${critique}`,
       ].join("\n\n");
-
     case "copilot":
-      // Copilot/M365: explicit tenant data grounding, markdown section headers
       return [
         `## Role\n${role}`,
         `## Task\n${task}`,
@@ -136,9 +130,7 @@ function applyAdapter(parts: PromptParts, model: Model): string {
         `## Constraints\n${constraints}`,
         `## Quality check before responding\n${critique}`,
       ].join("\n\n");
-
     case "grok":
-      // Grok: terse, direct, no pleasantries, blunt constraint framing
       return [
         `${role}.`,
         `Task: ${task}`,
@@ -150,38 +142,12 @@ function applyAdapter(parts: PromptParts, model: Model): string {
   }
 }
 
-// ─── Model metadata ───────────────────────────────────────────────────────────
 const MODELS: { id: Model; label: string; badge: string; hint: string }[] = [
-  {
-    id: "claude",
-    label: "Claude",
-    badge: "XML tags",
-    hint: "XML section tags + critique block — Claude's native dialect. Triggers adaptive extended thinking automatically.",
-  },
-  {
-    id: "chatgpt",
-    label: "ChatGPT",
-    badge: "Role + headers",
-    hint: "'You are...' framing and markdown headers — GPT-5 responds better to explicit role assertion than XML tags.",
-  },
-  {
-    id: "gemini",
-    label: "Gemini",
-    badge: "Natural flow",
-    hint: "Conversational structure with a verification step — Gemini Pro handles natural language better than heavy formatting.",
-  },
-  {
-    id: "copilot",
-    label: "Copilot",
-    badge: "M365-aware",
-    hint: "Explicit Microsoft 365 grounding — unlocks Copilot's ability to reference your Outlook, Teams, and SharePoint data.",
-  },
-  {
-    id: "grok",
-    label: "Grok",
-    badge: "Direct mode",
-    hint: "Terse and blunt — Grok responds better to direct prompts than formal structure or pleasantries.",
-  },
+  { id: "claude", label: "Claude", badge: "XML tags", hint: "XML section tags + critique block — Claude's native dialect." },
+  { id: "chatgpt", label: "ChatGPT", badge: "Role + headers", hint: "'You are...' framing and markdown headers — GPT-5's native pattern." },
+  { id: "gemini", label: "Gemini", badge: "Natural flow", hint: "Conversational structure with verification step." },
+  { id: "copilot", label: "Copilot", badge: "M365-aware", hint: "Explicit Microsoft 365 grounding — Outlook, Teams, SharePoint." },
+  { id: "grok", label: "Grok", badge: "Direct mode", hint: "Terse and blunt — Grok's preferred register." },
 ];
 
 const ARCHETYPE_LABELS: Record<Archetype, string> = {
@@ -213,6 +179,9 @@ export default function Home() {
     setParts(p);
     setArchetype(detected);
     setOutput(applyAdapter(p, activeModel));
+    setTimeout(() => {
+      document.getElementById("output")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   }
 
   function switchModel(model: Model) {
@@ -233,159 +202,208 @@ export default function Home() {
     setOutput("");
     setArchetype(null);
     setCopied(false);
-    setTimeout(() => textareaRef.current?.focus(), 0);
+    setTimeout(() => {
+      textareaRef.current?.focus();
+      document.getElementById("input-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
   }
 
   return (
-    <main className="min-h-screen bg-[#FDFCF8] py-14 px-4">
-      <div className="max-w-2xl mx-auto">
+    <main className="min-h-screen bg-[#F5F9FC]">
 
-        {/* Header */}
-        <div className="mb-10 text-center">
-          <h1 className="text-4xl font-bold text-[#1F2F4A] mb-2 tracking-tight">
-            PromptDolphin
-          </h1>
-          <p className="text-[#555555] text-base">
-            Describe your task. Get a precision-engineered prompt — instantly.
-          </p>
-          <p className="text-xs text-[#999] mt-1">
-            Nothing you type leaves your browser.
-          </p>
-        </div>
-
-        {/* Input */}
-        <div>
-          <textarea
-            ref={textareaRef}
-            value={task}
-            onChange={(e) => setTask(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey && task.trim()) {
-                e.preventDefault();
-                engineer();
-              }
-            }}
-            placeholder={`Describe your task in plain language.\n\nExamples:\n"Write an email to my VP asking to delay the Q3 launch by two weeks"\n"Help me decide whether we should expand to Europe next year"\n"Prep me for tomorrow's QBR with our biggest customer"`}
-            className="w-full border-2 border-[#D8D2C4] rounded-md p-4 text-[#1A1A1A] text-sm resize-none focus:outline-none focus:border-[#1F2F4A] bg-white leading-relaxed placeholder:text-[#bbb]"
-            rows={5}
-            autoFocus
-          />
-          <button
-            onClick={engineer}
-            disabled={!task.trim()}
-            className="mt-3 w-full py-3 bg-[#1F2F4A] text-white rounded-md text-sm font-semibold hover:bg-[#16243a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors tracking-wide"
-          >
-            Engineer this prompt →
-          </button>
-          <p className="mt-3 text-center text-[11px] text-[#bbb]">
-            Goldfish memory — nothing you type is stored or transmitted.{" "}
-            <a href="/trust" className="underline hover:text-[#777] transition-colors">
-              Verify
+      {/* Hero — full-bleed dolphin photograph */}
+      <section className="relative w-full h-[60vh] min-h-[480px] max-h-[720px] overflow-hidden">
+        <Image
+          src="/brand/dolphin-hero.jpg"
+          alt="A dolphin curving through deep ocean water"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+          quality={85}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F35]/85 via-[#0A1F35]/40 to-transparent" />
+        <div className="absolute inset-0 flex items-end pb-12 md:pb-16">
+          <div className="max-w-5xl mx-auto px-6 md:px-10 w-full">
+            <h1 className="text-[#F5F9FC] font-serif text-4xl md:text-6xl leading-tight tracking-tight max-w-2xl"
+                style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}>
+              The ocean is your AI.
+              <br />
+              <span className="text-[#6FA0CC]">Most people wade.</span>
+              <span className="text-[#A67C3D]"> We dive.</span>
+            </h1>
+            <p className="mt-4 text-[#C4D2E0] text-base md:text-lg max-w-xl">
+              PromptDolphin engineers the prompt that gets you to the depth. For Claude, ChatGPT, Gemini, Copilot, or Grok. In sixty seconds. Without storing a thing.
+            </p>
+            <a
+              href="#input-section"
+              className="inline-block mt-6 px-6 py-3 bg-[#A67C3D] text-white rounded-md text-sm font-semibold hover:bg-[#8a6530] transition-colors tracking-wide"
+            >
+              Try it now →
             </a>
-          </p>
+          </div>
         </div>
+      </section>
 
-        {/* Output */}
-        {output && (
-          <div className="mt-10">
+      {/* App — single-box engineer */}
+      <section id="input-section" className="py-16 px-4">
+        <div className="max-w-2xl mx-auto">
 
-            {/* Detected archetype badge */}
-            {archetype && (
-              <div className="flex items-center gap-2 mb-5">
-                <span className="text-xs text-[#777]">Detected format:</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-[#F4EFE2] text-[#A67C3D] font-semibold border border-[#D8D2C4]">
-                  {ARCHETYPE_LABELS[archetype]}
-                </span>
-              </div>
-            )}
+          <div className="text-center mb-8">
+            <p className="text-xs uppercase tracking-widest text-[#A67C3D] font-semibold mb-2">
+              Describe your task
+            </p>
+            <p className="text-[#4A5A6E] text-sm">
+              Plain language. One sentence. We handle the engineering.
+            </p>
+          </div>
 
-            {/* Model selector */}
-            <div className="mb-4">
-              <p className="text-xs text-[#777] mb-2 font-medium uppercase tracking-wider">
-                Optimize for your AI
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {MODELS.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => switchModel(m.id)}
-                    title={m.hint}
-                    className={`flex flex-col items-start px-3 py-2 rounded-md border text-left transition-all ${
-                      activeModel === m.id
-                        ? "border-[#1F2F4A] bg-[#1F2F4A] text-white"
-                        : "border-[#D8D2C4] bg-white text-[#1A1A1A] hover:border-[#1F2F4A] hover:bg-[#F7F2E8]"
-                    }`}
-                  >
-                    <span className="text-xs font-semibold">{m.label}</span>
-                    <span
-                      className={`text-[10px] mt-0.5 ${
-                        activeModel === m.id ? "text-[#c9973f]" : "text-[#999]"
+          <div>
+            <textarea
+              ref={textareaRef}
+              value={task}
+              onChange={(e) => setTask(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey && task.trim()) {
+                  e.preventDefault();
+                  engineer();
+                }
+              }}
+              placeholder={`Examples:\n"Write an email to my VP asking to delay the Q3 launch by two weeks"\n"Help me decide whether we should expand to Europe next year"\n"Prep me for tomorrow's QBR with our biggest customer"`}
+              className="w-full border-2 border-[#C4D2E0] rounded-md p-4 text-[#0E1A2A] text-sm resize-none focus:outline-none focus:border-[#143352] bg-white leading-relaxed placeholder:text-[#8FA6BC] shadow-sm"
+              rows={5}
+              autoFocus
+            />
+            <button
+              onClick={engineer}
+              disabled={!task.trim()}
+              className="mt-3 w-full py-3 bg-[#143352] text-white rounded-md text-sm font-semibold hover:bg-[#0A1F35] disabled:opacity-40 disabled:cursor-not-allowed transition-colors tracking-wide"
+            >
+              Engineer this prompt →
+            </button>
+            <p className="mt-3 text-center text-[11px] text-[#8FA6BC]">
+              🐟 Goldfish memory — nothing you type is stored or transmitted.{" "}
+              <a href="/trust" className="underline hover:text-[#143352] transition-colors">
+                Verify
+              </a>
+            </p>
+          </div>
+
+          {output && (
+            <div id="output" className="mt-12">
+
+              {archetype && (
+                <div className="flex items-center gap-2 mb-5">
+                  <span className="text-xs text-[#4A5A6E]">Detected format:</span>
+                  <span className="text-xs px-2 py-0.5 rounded bg-[#E8EFF5] text-[#A67C3D] font-semibold border border-[#C4D2E0]">
+                    {ARCHETYPE_LABELS[archetype]}
+                  </span>
+                </div>
+              )}
+
+              <div className="mb-4">
+                <p className="text-xs text-[#4A5A6E] mb-2 font-semibold uppercase tracking-wider">
+                  Optimize for your AI
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {MODELS.map((m) => (
+                    <button
+                      key={m.id}
+                      onClick={() => switchModel(m.id)}
+                      title={m.hint}
+                      className={`flex flex-col items-start px-3 py-2 rounded-md border text-left transition-all ${
+                        activeModel === m.id
+                          ? "border-[#143352] bg-[#143352] text-white"
+                          : "border-[#C4D2E0] bg-white text-[#0E1A2A] hover:border-[#143352] hover:bg-[#E8EFF5]"
                       }`}
                     >
-                      {m.badge}
-                    </span>
+                      <span className="text-xs font-semibold">{m.label}</span>
+                      <span
+                        className={`text-[10px] mt-0.5 ${
+                          activeModel === m.id ? "text-[#A67C3D]" : "text-[#4A5A6E]"
+                        }`}
+                      >
+                        {m.badge}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-[#0A1F35] border border-[#143352] rounded-md p-5 text-sm text-[#F5F9FC] font-mono whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto shadow-lg">
+                {output}
+              </div>
+
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-xs text-[#4A5A6E]">
+                  Paste into{" "}
+                  <span className="font-semibold text-[#143352]">
+                    {MODELS.find((m) => m.id === activeModel)?.label}
+                  </span>
+                  . Switch models above to reformat in{" "}
+                  <span className="font-semibold text-[#143352]">&lt;1ms</span>.
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={reset}
+                    className="text-xs text-[#8FA6BC] hover:text-[#143352] px-2 py-1 transition-colors"
+                  >
+                    Start over
                   </button>
-                ))}
+                  <button
+                    onClick={copy}
+                    className="px-4 py-2 bg-[#A67C3D] text-white rounded-md text-xs font-semibold hover:bg-[#8a6530] transition-colors min-w-[100px]"
+                  >
+                    {copied ? "✓ Copied" : "Copy prompt"}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Prompt output */}
-            <div className="bg-[#F4EFE2] border border-[#D8D2C4] rounded-md p-4 text-sm text-[#1A1A1A] font-mono whitespace-pre-wrap leading-relaxed max-h-80 overflow-y-auto">
-              {output}
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center justify-between mt-3">
-              <p className="text-xs text-[#999]">
-                Paste into{" "}
-                <span className="font-medium text-[#555]">
-                  {MODELS.find((m) => m.id === activeModel)?.label}
-                </span>
-                . Switch models to reformat in{" "}
-                <span className="font-medium text-[#555]">&lt;1ms</span>.
+              <p className="mt-3 text-[10px] text-[#8FA6BC] text-center leading-relaxed">
+                {MODELS.find((m) => m.id === activeModel)?.hint}
               </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={reset}
-                  className="text-xs text-[#aaa] hover:text-[#555] px-2 py-1 transition-colors"
-                >
-                  Start over
-                </button>
-                <button
-                  onClick={copy}
-                  className="px-4 py-2 bg-[#A67C3D] text-white rounded-md text-xs font-semibold hover:bg-[#8a6530] transition-colors min-w-[100px]"
-                >
-                  {copied ? "✓ Copied" : "Copy prompt"}
-                </button>
-              </div>
+
             </div>
+          )}
+        </div>
+      </section>
 
-            {/* Active model hint */}
-            <p className="mt-3 text-[10px] text-[#ccc] text-center leading-relaxed">
-              {MODELS.find((m) => m.id === activeModel)?.hint}
-            </p>
-
+      {/* The acquisition argument */}
+      <section className="bg-white py-16 px-4 border-y border-[#C4D2E0]">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div>
+            <p className="text-5xl font-serif text-[#143352]" style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}>0</p>
+            <p className="text-sm font-semibold text-[#0E1A2A] mt-2 mb-1">Compute cost</p>
+            <p className="text-xs text-[#4A5A6E] leading-relaxed">All assembly happens in your browser. Our server costs are flat. Yours are nothing.</p>
           </div>
-        )}
-
-      </div>
+          <div>
+            <p className="text-5xl font-serif text-[#143352]" style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}>0</p>
+            <p className="text-sm font-semibold text-[#0E1A2A] mt-2 mb-1">Retention</p>
+            <p className="text-xs text-[#4A5A6E] leading-relaxed">Nothing you type leaves your browser. Verified by our connect-src: none header. Verifiable in DevTools.</p>
+          </div>
+          <div>
+            <p className="text-5xl font-serif text-[#143352]" style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}>0</p>
+            <p className="text-sm font-semibold text-[#0E1A2A] mt-2 mb-1">IT objections</p>
+            <p className="text-xs text-[#4A5A6E] leading-relaxed">Compatible with Zscaler, Netskope, Umbrella, Palo Alto. Open-source engine. <a href="/trust" className="underline text-[#143352]">Read the proof →</a></p>
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="mt-16 pb-8 text-center">
-        {/* Krentix attribution */}
-        <p className="mb-3 text-xs text-[#555]">
+      <footer className="bg-[#0A1F35] py-12 px-4 text-center">
+        <p className="mb-3 text-sm text-[#C4D2E0]">
           Prompt intelligence powered by{" "}
           <a
             href="https://krentix.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-[#A67C3D] hover:text-[#8a6530] transition-colors underline-offset-2 underline"
+            className="font-semibold text-[#A67C3D] hover:text-[#c9973f] transition-colors underline-offset-2 underline"
           >
             Krentix
           </a>
         </p>
-        <p className="text-[11px] text-[#ccc] space-x-3">
-          <a href="/trust" className="hover:text-[#777] transition-colors">
+        <p className="text-[11px] text-[#8FA6BC] space-x-3">
+          <a href="/trust" className="hover:text-[#F5F9FC] transition-colors">
             Goldfish memory — nothing stored
           </a>
           <span>·</span>
@@ -393,18 +411,18 @@ export default function Home() {
             href="https://github.com/joelrobic-gif/prompt-dolphin"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-[#777] transition-colors"
+            className="hover:text-[#F5F9FC] transition-colors"
           >
             Open-source engine
           </a>
           <span>·</span>
-          <a href="/privacy" className="hover:text-[#777] transition-colors">
+          <a href="/privacy" className="hover:text-[#F5F9FC] transition-colors">
             Privacy
           </a>
           <span>·</span>
           <span>No tracking cookies</span>
         </p>
-        <p className="text-[10px] text-[#ddd] mt-1">
+        <p className="text-[10px] text-[#4A5A6E] mt-3">
           Robic Direct Inc. · connect-src: none
         </p>
       </footer>
