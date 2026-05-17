@@ -2,10 +2,15 @@
 
 > **Single source of truth on project state. Update at every phase transition.**
 
-**Last updated:** 2026-05-17T13:40:00Z
-**Current phase:** Phase 0.5 — Part A (Spike build) IN PROGRESS
-**Current specialist on duty:** Priya Rao (architect)
-**Next:** Build minimal Next.js spike in `spike/` per master prompt Phase 0.5 Part A spec.
+**Last updated:** 2026-05-17T17:30:00Z
+**Current phase:** Phase 3 — Design System + /trust + /privacy SHIPPED
+**Current specialist on duty:** Brandt (design director)
+**Next:** Phase 4 — connector-aware engine extension (Power Up panel) per `connector-engine-spec.md`.
+
+## Live URL
+- Production: https://promptdolphin-production.up.railway.app
+- Custom domain: www.promptdolphin.com (waiting on GoDaddy DNS — CNAME → promptdolphin-production.up.railway.app)
+- GitHub: https://github.com/joelrobic-gif/prompt-dolphin
 
 ---
 
@@ -17,13 +22,13 @@
   - [SKIPPED] Part B — User interviews (decision: skip — Joel, 2026-05-17)
 - [ ] **Phase 1** — Business Plan Refinement
 - [ ] **Phase 2** — Technical Specification
-- [ ] **Phase 3** — Design System with Exclusion Charter
-- [ ] **Phase 4** — Production Build
-  - [ ] 4.0.5 — Theme Lockdown
-  - [ ] 4.1 — Open-Source Engine
-  - [ ] 4.2 — Next.js Application
-  - [ ] 4.3 — Analytics (aggregate only)
-  - [ ] 4.4 — Deployment
+- [x] **Phase 3** — Design System ✅ 2026-05-17 (ocean aesthetic, /trust, /privacy)
+- [~] **Phase 4** — Production Build (Phase 4 engine ✅ — connector-aware engine + Power Up panel shipped)
+  - [x] 4.0 — Connector + format + review + depth + rich-media engine extension
+  - [x] 4.1 — Power Up panel (Tier 2 progressive disclosure)
+  - [x] 4.2 — Advanced panel (Tier 3 — review mode + rich media)
+  - [ ] 4.3 — Self-hosted Plausible analytics (aggregate only)
+  - [ ] 4.4 — Custom domain promptdolphin.com cutover (waiting on GoDaddy DNS)
 - [ ] **Phase 5** — QA, Review, Cross-Model Audit
 - [ ] **Phase 6** — Ship
 - [ ] **Phase 7** — Retrospective
