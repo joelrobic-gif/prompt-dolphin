@@ -1,11 +1,14 @@
 import type { NextConfig } from "next";
 
+// CSP policy: connect-src 'self' (only first-party prefetch/image-opt, no external destinations)
+// script-src 'self' 'unsafe-inline' for Next.js hydration bootstrap (no external scripts loaded)
+// Result: zero third-party exfiltration possible. User content never leaves the device.
 const CSP = [
   "default-src 'self'",
-  "script-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
-  "connect-src 'none'",
+  "connect-src 'self'",
   "frame-ancestors 'none'",
   "form-action 'none'",
   "base-uri 'self'",

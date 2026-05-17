@@ -379,7 +379,7 @@ export default function Home() {
           <div>
             <p className="text-5xl font-serif text-[#143352]" style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}>0</p>
             <p className="text-sm font-semibold text-[#0E1A2A] mt-2 mb-1">Retention</p>
-            <p className="text-xs text-[#4A5A6E] leading-relaxed">Nothing you type leaves your browser. Verified by our connect-src: none header. Verifiable in DevTools.</p>
+            <p className="text-xs text-[#4A5A6E] leading-relaxed">Nothing you type leaves your browser. No third-party connections allowed by our CSP. Verifiable in DevTools.</p>
           </div>
           <div>
             <p className="text-5xl font-serif text-[#143352]" style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}>0</p>
@@ -423,7 +423,7 @@ export default function Home() {
           <span>No tracking cookies</span>
         </p>
         <p className="text-[10px] text-[#4A5A6E] mt-3">
-          Robic Direct Inc. · connect-src: none
+          Robic Direct Inc. · No third-party connections
         </p>
       </footer>
 

@@ -53,7 +53,7 @@ export default function PrivacyPage() {
               <li>Any cross-site tracking data</li>
             </ul>
             <p className="text-sm mt-3">
-              Enforced by our <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">connect-src: none</code> Content Security Policy header on every page, and by the open-source engine that contains no transmission code.
+              Enforced by our <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">connect-src 'self'</code> Content Security Policy header (no third-party servers can receive your data) and by the open-source engine that contains no transmission code for user content.
             </p>
           </section>
 

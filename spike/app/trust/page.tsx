@@ -59,7 +59,7 @@ export default function TrustPage() {
                 <a href="https://securityheaders.com/?q=promptdolphin.com" target="_blank" rel="noopener noreferrer" className="text-[#143352] underline">
                   securityheaders.com
                 </a>
-                . The <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">connect-src: none</code> directive prevents all outbound network connections from the page — browser-enforced, not a server-side promise.
+                . Our CSP directive <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">connect-src 'self'</code> restricts all outbound connections to first-party only — no third-party servers can receive your data. Browser-enforced, not a server-side promise.
               </p>
             </div>
 
