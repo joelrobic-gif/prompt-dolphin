@@ -372,6 +372,18 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="mt-16 pb-8 text-center">
+        {/* Krentix attribution */}
+        <p className="mb-3 text-xs text-[#555]">
+          Prompt intelligence powered by{" "}
+          <a
+            href="https://krentix.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-[#A67C3D] hover:text-[#8a6530] transition-colors underline-offset-2 underline"
+          >
+            Krentix
+          </a>
+        </p>
         <p className="text-[11px] text-[#ccc] space-x-3">
           <a href="/trust" className="hover:text-[#777] transition-colors">
             Goldfish memory — nothing stored
