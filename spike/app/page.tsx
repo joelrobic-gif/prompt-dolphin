@@ -277,6 +277,12 @@ export default function Home() {
           >
             Engineer this prompt →
           </button>
+          <p className="mt-3 text-center text-[11px] text-[#bbb]">
+            Goldfish memory — nothing you type is stored or transmitted.{" "}
+            <a href="/trust" className="underline hover:text-[#777] transition-colors">
+              Verify
+            </a>
+          </p>
         </div>
 
         {/* Output */}
@@ -363,6 +369,34 @@ export default function Home() {
         )}
 
       </div>
+
+      {/* Footer */}
+      <footer className="mt-16 pb-8 text-center">
+        <p className="text-[11px] text-[#ccc] space-x-3">
+          <a href="/trust" className="hover:text-[#777] transition-colors">
+            Goldfish memory — nothing stored
+          </a>
+          <span>·</span>
+          <a
+            href="https://github.com/joelrobic-gif/prompt-dolphin"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-[#777] transition-colors"
+          >
+            Open-source engine
+          </a>
+          <span>·</span>
+          <a href="/privacy" className="hover:text-[#777] transition-colors">
+            Privacy
+          </a>
+          <span>·</span>
+          <span>No tracking cookies</span>
+        </p>
+        <p className="text-[10px] text-[#ddd] mt-1">
+          Robic Direct Inc. · connect-src: none
+        </p>
+      </footer>
+
     </main>
   );
 }
