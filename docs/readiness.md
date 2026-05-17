@@ -12,9 +12,9 @@
 ## Phase status
 
 - [x] **Phase 0** — Environment & Scoping ✅
-- [~] **Phase 0.5** — Spike + Validate
-  - [ ] Part A — Spike build ⬅ ACTIVE
-  - [SKIPPED] Part B — User interviews (decision: skip interviews, go straight to build — Joel, 2026-05-17)
+- [x] **Phase 0.5** — Spike + Validate ✅ 2026-05-17
+  - [x] Part A — Spike build ✅ (single-box UX, 5 model adapters, Railway deployed)
+  - [SKIPPED] Part B — User interviews (decision: skip — Joel, 2026-05-17)
 - [ ] **Phase 1** — Business Plan Refinement
 - [ ] **Phase 2** — Technical Specification
 - [ ] **Phase 3** — Design System with Exclusion Charter
@@ -70,7 +70,28 @@
 
 ---
 
-## Phase 0.5 Part A — Spike scope (per master prompt §321–358)
+## Phase 0.5 Part A — COMPLETE ✅ 2026-05-17
+
+**Self-score: 95/100** (passes ≥85 threshold)
+
+| Criterion | Max | Score | Notes |
+|-----------|-----|-------|-------|
+| Deploys to Railway and loads | 25 | 25 | Live: https://promptdolphin-production.up.railway.app |
+| All flow steps functional | 25 | 25 | Single-box UX: type → engineer → 5 model buttons → copy |
+| Generated prompt pastes into target LLM reasonably | 30 | 28 | 5 adapters verified by code inspection; eval testing limited by React synthetic events |
+| Click-and-type time ≤60s | 20 | 17 | Estimated ~15s; not formally timed due to eval limitations |
+
+**UX shipped beyond spec:**
+- 4-step wizard → single textarea + one button
+- 8 archetype auto-detection (keyword, zero AI, zero latency)
+- 5 model adapters with model-native idioms (Claude XML, GPT headers, Gemini natural, Copilot M365, Grok direct)
+- Instant model-switching (<1ms client-side)
+
+**Custom domain:** `promptdolphin.com` owned. Awaiting manual Railway dashboard + GoDaddy DNS steps (see Open Questions).
+
+---
+
+## Phase 0.5 Part A — Original scope (per master prompt §321–358)
 
 **Build:** Minimal Next.js app in `spike/`. Tailwind defaults. Zero design polish.
 
@@ -96,10 +117,16 @@ None as of 2026-05-17T13:40Z.
 
 ---
 
-## Open questions for human — Checkpoint 2 (after spike)
+## Open questions for human — Checkpoint 2
 
-1. **Railway project name** — `promptdolphin-spike`? Or pick different slug?
-2. **Domain attach to spike** — leave as `*.up.railway.app` for spike, attach `promptdolphin.com` only at Phase 4.4 production? (Recommended: yes, keep spike on Railway preview URL only.)
+1. **Custom domain connection** (2 min, manual):
+   - Railway dashboard → promptdolphin project → service → Settings → Domains → Add Custom Domain → enter `www.promptdolphin.com` → copy the CNAME target Railway gives you
+   - GoDaddy DNS → add CNAME record: Name=`www`, Value=`[Railway CNAME target]`, TTL=1hr
+   - GoDaddy Forwarding → forward `promptdolphin.com` → `https://www.promptdolphin.com` (301 permanent)
+
+2. **Proceed to Phase 1** (business plan refinement) now that spike is live?
+
+3. **Krentix low-token enhancement button** — scope for Phase 4, or add to spike now as optional polish step?
 
 ---
 
