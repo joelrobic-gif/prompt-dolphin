@@ -401,7 +401,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#F5F9FC]">
 
       {/* Hero */}
-      <section className="relative w-full h-[60vh] min-h-[480px] max-h-[720px] overflow-hidden">
+      <section className="relative w-full h-[70vh] min-h-[420px] sm:min-h-[480px] md:min-h-[560px] max-h-[800px] overflow-hidden">
         <Image
           src="/brand/dolphin-hero.jpg"
           alt="A dolphin curving through deep ocean water"
@@ -409,22 +409,24 @@ export default function Home() {
           className="object-cover"
           quality={85}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F35]/85 via-[#0A1F35]/40 to-transparent" />
-        <div className="absolute inset-0 flex items-end pb-12 md:pb-16">
-          <div className="max-w-5xl mx-auto px-6 md:px-10 w-full">
-            <h1 className="text-[#F5F9FC] font-serif text-4xl md:text-6xl leading-tight tracking-tight max-w-2xl"
-                style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F35]/90 via-[#0A1F35]/55 to-[#0A1F35]/10" />
+        <div className="absolute inset-0 flex items-end pb-10 sm:pb-12 md:pb-16 lg:pb-20">
+          <div className="w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-10 lg:px-16">
+            <h1
+              className="text-[#F5F9FC] font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] tracking-tight max-w-[18ch]"
+              style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}
+            >
               The ocean is your AI.
               <br />
               <span className="text-[#6FA0CC]">Most people wade.</span>
               <span className="text-[#A67C3D]"> We dive.</span>
             </h1>
-            <p className="mt-4 text-[#C4D2E0] text-base md:text-lg max-w-xl">
+            <p className="mt-4 sm:mt-5 text-[#C4D2E0] text-sm sm:text-base md:text-lg lg:text-xl max-w-[55ch] leading-relaxed">
               PromptDolphin engineers the prompt that gets you to the depth. For Claude, ChatGPT, Gemini, Copilot, or Grok. In sixty seconds. Without storing a thing.
             </p>
             <a
               href="#input-section"
-              className="inline-block mt-6 px-6 py-3 bg-[#A67C3D] text-white rounded-md text-sm font-semibold hover:bg-[#8a6530] transition-colors tracking-wide"
+              className="inline-block mt-5 sm:mt-6 px-5 sm:px-6 py-2.5 sm:py-3 bg-[#A67C3D] text-white rounded-md text-sm sm:text-base font-semibold hover:bg-[#8a6530] transition-colors tracking-wide"
             >
               Try it now →
             </a>
@@ -433,8 +435,8 @@ export default function Home() {
       </section>
 
       {/* App */}
-      <section id="input-section" className="py-16 px-4">
-        <div className="max-w-2xl mx-auto">
+      <section id="input-section" className="py-12 sm:py-14 md:py-16 lg:py-20 px-4 sm:px-6 md:px-8">
+        <div className="w-full max-w-2xl md:max-w-3xl mx-auto">
 
           <div className="text-center mb-8">
             <p className="text-xs uppercase tracking-widest text-[#A67C3D] font-semibold mb-2">
@@ -626,8 +628,8 @@ export default function Home() {
                 {output}
               </div>
 
-              <div className="flex items-center justify-between mt-4">
-                <p className="text-xs text-[#4A5A6E]">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
+                <p className="text-xs text-[#4A5A6E] leading-relaxed">
                   Paste into{" "}
                   <span className="font-semibold text-[#143352]">
                     {MODELS.find((m) => m.id === activeModel)?.label}
@@ -635,7 +637,7 @@ export default function Home() {
                   . Switch models or settings to reformat in{" "}
                   <span className="font-semibold text-[#143352]">&lt;1ms</span>.
                 </p>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <button onClick={reset} className="text-xs text-[#8FA6BC] hover:text-[#143352] px-2 py-1 transition-colors">
                     Start over
                   </button>
@@ -658,8 +660,8 @@ export default function Home() {
       </section>
 
       {/* Acquisition argument */}
-      <section className="bg-white py-16 px-4 border-y border-[#C4D2E0]">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
+      <section className="bg-white py-12 sm:py-14 md:py-16 lg:py-20 px-4 sm:px-6 md:px-8 border-y border-[#C4D2E0]">
+        <div className="w-full max-w-5xl xl:max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-10 md:gap-12">
           <div>
             <p className="text-5xl font-serif text-[#143352]" style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}>0</p>
             <p className="text-sm font-semibold text-[#0E1A2A] mt-2 mb-1">Compute cost</p>
@@ -679,7 +681,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#0A1F35] py-12 px-4 text-center">
+      <footer className="bg-[#0A1F35] py-10 sm:py-12 md:py-14 px-4 sm:px-6 text-center">
         <p className="mb-3 text-sm text-[#C4D2E0]">
           Prompt intelligence powered by{" "}
           <a href="https://krentix.com" target="_blank" rel="noopener noreferrer"
