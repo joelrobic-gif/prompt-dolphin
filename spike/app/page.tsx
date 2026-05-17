@@ -413,16 +413,15 @@ export default function Home() {
         <div className="absolute inset-0 flex items-end pb-10 sm:pb-12 md:pb-16 lg:pb-20">
           <div className="w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-10 lg:px-16">
             <h1
-              className="text-[#F5F9FC] font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] tracking-tight max-w-[18ch]"
+              className="text-[#F5F9FC] font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] tracking-tight max-w-[20ch]"
               style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}
             >
-              The ocean is your AI.
-              <br />
-              <span className="text-[#6FA0CC]">Most people wade.</span>
-              <span className="text-[#A67C3D]"> We dive.</span>
+              Your AI is only as good as{" "}
+              <span className="text-[#A67C3D]">your prompt.</span>
             </h1>
-            <p className="mt-4 sm:mt-5 text-[#C4D2E0] text-sm sm:text-base md:text-lg lg:text-xl max-w-[55ch] leading-relaxed">
-              PromptDolphin engineers the prompt that gets you to the depth. For Claude, ChatGPT, Gemini, Copilot, or Grok. In sixty seconds. Without storing a thing.
+            <p className="mt-4 sm:mt-5 text-[#C4D2E0] text-sm sm:text-base md:text-lg lg:text-xl max-w-[60ch] leading-relaxed">
+              Describe your task in one sentence. PromptDolphin engineers it into a paste-ready prompt — tuned to{" "}
+              <span className="text-[#F5F9FC] font-medium">Claude, ChatGPT, Gemini, Copilot, or Grok</span>. 60 seconds. Free. Nothing leaves your browser.
             </p>
             <a
               href="#input-section"

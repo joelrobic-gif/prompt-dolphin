@@ -4,11 +4,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://promptdolphin.com"),
   title: {
-    default: "PromptDolphin — The ocean is your AI. Most people wade. We dive.",
+    default: "PromptDolphin — Your AI is only as good as your prompt",
     template: "%s — PromptDolphin",
   },
   description:
-    "Describe your task. Get a precision-engineered prompt for Claude, ChatGPT, Gemini, Copilot, or Grok — instantly. Goldfish memory: nothing you type is stored or transmitted.",
+    "Describe your task in one sentence. PromptDolphin engineers it into a paste-ready prompt tuned to Claude, ChatGPT, Gemini, Copilot, or Grok. 60 seconds. Free. Nothing leaves your browser.",
   applicationName: "PromptDolphin",
   authors: [{ name: "Robic Direct Inc." }],
   keywords: [
@@ -24,9 +24,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://promptdolphin.com",
-    title: "PromptDolphin — The ocean is your AI. Most people wade. We dive.",
+    title: "PromptDolphin — Your AI is only as good as your prompt",
     description:
-      "Precision-engineered prompts for any leading AI, instantly. Zero retention, open-source engine, IT-approvable architecture.",
+      "One sentence in. Paste-ready prompt out. Tuned per model. Free. Private. IT-approvable.",
     siteName: "PromptDolphin",
     images: [
       {
@@ -39,9 +39,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "PromptDolphin — The ocean is your AI. Most people wade. We dive.",
+    title: "PromptDolphin — Your AI is only as good as your prompt",
     description:
-      "Precision-engineered prompts for any leading AI, instantly. Zero retention.",
+      "One sentence in. Paste-ready prompt out. Tuned per model. Free. Private.",
     images: ["/brand/dolphin-hero.jpg"],
   },
   icons: {
