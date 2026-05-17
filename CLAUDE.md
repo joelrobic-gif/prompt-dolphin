@@ -8,7 +8,11 @@ This file is loaded by Claude Code at the start of every session in this directo
 
 **Codename:** L99 Prompt (internal only — never appears in user-facing copy)
 
-**User-facing brand:** TBD. Candidates: Anvil, Forge, Signal. Decided after Phase 0.5 validation.
+**User-facing brand:** PromptDolphin — confirmed by Joel at Checkpoint 1 (2026-05-16).
+
+**Domain:** promptdolphin.com — owned by Joel Robic on GoDaddy.
+
+**GitHub:** joelrobic-gif personal account — engine repo and app repo both here.
 
 **Signature:** Robic Direct Inc., Joel Robic, Founder.
 
