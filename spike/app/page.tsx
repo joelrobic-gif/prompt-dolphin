@@ -432,8 +432,6 @@ export default function Home() {
               Describe your task in one sentence. PromptDolphin engineers it into a paste-ready prompt — tuned to{" "}
               <span className="font-semibold text-[#143352]">Claude, ChatGPT, Gemini, Copilot, or Grok</span>. 60 seconds. Free. Nothing leaves your browser.
             </p>
-              Plain language. One sentence. We handle the engineering.
-            </p>
           </div>
 
           <div>

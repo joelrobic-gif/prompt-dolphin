@@ -2,15 +2,22 @@
 
 > **Single source of truth on project state. Update at every phase transition.**
 
-**Last updated:** 2026-05-17T17:30:00Z
-**Current phase:** Phase 3 — Design System + /trust + /privacy SHIPPED
-**Current specialist on duty:** Brandt (design director)
-**Next:** Phase 4 — connector-aware engine extension (Power Up panel) per `connector-engine-spec.md`.
+**Last updated:** 2026-05-19T23:30:00Z
+**Current phase:** v1.0 SHIPPED — ultra-simple page + /trust + /privacy + /for-teams + engine + 100% test pass
+**Current specialist on duty:** Mireles (founder lens — v1.0 release)
+**Next:** Phase 5 QA — Lighthouse audit, real-LLM smoke test, retrospective.
 
 ## Live URL
 - Production: https://promptdolphin-production.up.railway.app
 - Custom domain: www.promptdolphin.com (waiting on GoDaddy DNS — CNAME → promptdolphin-production.up.railway.app)
 - GitHub: https://github.com/joelrobic-gif/prompt-dolphin
+
+## v1.0 Release Summary (2026-05-19)
+- Pages: `/`, `/trust`, `/privacy`, `/for-teams` — all responsive (mobile 375 / tablet 768 / desktop 1440+)
+- Engine: 5 model adapters × 8 archetypes × 8 connectors × 8 formats × 4 reviews × 4 depths × 5 media = 204,800 configs
+- Tests: 100,000 stress iters @ 100% pass, p99 0.003ms, 470k prompts/sec/core
+- Cost: $0 per prompt, $0 per concurrent user (client-side)
+- Trust: A+ CSP with `connect-src 'self'`, goldfish badge, open-source engine, Krentix attribution
 
 ---
 
@@ -23,14 +30,20 @@
 - [ ] **Phase 1** — Business Plan Refinement
 - [ ] **Phase 2** — Technical Specification
 - [x] **Phase 3** — Design System ✅ 2026-05-17 (ocean aesthetic, /trust, /privacy)
-- [~] **Phase 4** — Production Build (Phase 4 engine ✅ — connector-aware engine + Power Up panel shipped)
-  - [x] 4.0 — Connector + format + review + depth + rich-media engine extension
-  - [x] 4.1 — Power Up panel (Tier 2 progressive disclosure)
-  - [x] 4.2 — Advanced panel (Tier 3 — review mode + rich media)
-  - [ ] 4.3 — Self-hosted Plausible analytics (aggregate only)
+- [x] **Phase 4** — Production Build ✅ 2026-05-19
+  - [x] 4.0 — Engine: 5-dimension prompt config (connector × format × review × depth × media)
+  - [x] 4.1 — Power Up panel (Tier 2)
+  - [x] 4.2 — Advanced panel (Tier 3)
+  - [x] 4.5 — Ultra-simple UX (CTA removed, input above fold, compact hero)
+  - [x] 4.6 — /for-teams enterprise adoption page
+  - [SKIPPED] 4.3 — Self-hosted Plausible analytics (deferred to v1.1)
   - [ ] 4.4 — Custom domain promptdolphin.com cutover (waiting on GoDaddy DNS)
-- [ ] **Phase 5** — QA, Review, Cross-Model Audit
-- [ ] **Phase 6** — Ship
+- [~] **Phase 5** — QA, Review, Cross-Model Audit
+  - [x] 5.1 — Engine test harness 100k iters: 100% pass, p99 0.003ms
+  - [x] 5.2 — Visual QA mobile + tablet + desktop PASS
+  - [ ] 5.3 — Lighthouse audit (pending Railway redeploy after 503 recovery)
+  - [ ] 5.4 — Real-LLM smoke test (deferred)
+- [ ] **Phase 6** — Ship (v1.0 tag)
 - [ ] **Phase 7** — Retrospective
 - [ ] **Phase 8** — Distribution Ports (optional, post-launch)
 

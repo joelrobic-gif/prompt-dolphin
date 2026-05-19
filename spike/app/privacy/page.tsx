@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy — PromptDolphin",
+  title: "Privacy",
   description: "Plain-language privacy policy. We collect almost nothing.",
 };
 

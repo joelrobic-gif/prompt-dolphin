@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "For Teams — PromptDolphin",
+  title: "For Teams",
   description:
     "PromptDolphin for teams: free for every employee, zero IT overhead, verifiable privacy. The AI productivity tool your IT department will encourage.",
 };

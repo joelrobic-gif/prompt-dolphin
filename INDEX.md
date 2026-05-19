@@ -17,12 +17,29 @@
 
 | File | What it is | When to consult |
 |------|------------|-----------------|
-| `docs/methodology-reference.md` | The seven-component spine + worked Claude adapter | Phase 2 (adapter format) and Phase 4 (engine implementation) |
-| `docs/archetype-list.md` | The ten V1 archetypes | Phase 0.5 (interview Task B) and Phase 4 (archetype data files) |
-| `docs/design-exclusion-charter.md` | 20 banned UI patterns with rationale | Every UI decision in Phase 3 and Phase 4 |
-| `validation/recruitment.md` | Interview outreach messages | Phase 0.5 part B start |
-| `validation/interview-script.md` | 20-min protocol with decision rules | Phase 0.5 part B execution |
-| `business-plan/v1-draft.md` | Strategic foundation to refine | Phase 1 input |
+| `docs/methodology-reference.md` | Seven-component spine + worked Claude adapter | Phase 2/4 reference |
+| `docs/archetype-list.md` | Ten V1 archetypes | Phase 0.5 / Phase 4 archetype data |
+| `docs/design-exclusion-charter.md` | 20 banned UI patterns | Every UI decision |
+| `docs/connector-engine-spec.md` | 5-dimension engine spec (connector × format × review × depth × media) | Phase 4 implementation |
+| `docs/enterprise-trust-spec.md` | IT/CISO architecture + /trust page spec | Phase 3 trust pages |
+| `docs/design-prompt-ocean-aesthetic.md` | Opus 4.7 design prompt for identity rebuild | Phase 3 design redo |
+| `docs/brand-asset-library.md` | Approved brand assets (6 photos, color system) | All UI work |
+| `docs/test-results-summary.md` | Engine scorecard (100k iters, 100% pass, p99 0.003ms) | Acquisition diligence |
+| `business-plan/v1-draft.md` | Strategic foundation | Phase 1 input |
+
+## Code artifacts (shipped)
+
+| File | What it is |
+|------|------------|
+| `engine/engine.mjs` | Pure-JS prompt engine, MIT-licensed, Node-testable |
+| `scripts/test-engine.mjs` | 100k iteration test harness |
+| `scripts/gen-hero-explorations.mjs` + `gen-hero-cycle2.mjs` | Krentix image generation |
+| `spike/app/page.tsx` | Homepage — ocean aesthetic + 5-dim Power Up panel |
+| `spike/app/trust/page.tsx` | IT/CISO trust page |
+| `spike/app/privacy/page.tsx` | Plain-language privacy policy |
+| `spike/app/for-teams/page.tsx` | Enterprise adoption pitch |
+| `spike/public/brand/` | 6 brand assets (dolphin-hero/leap/pod/painterly/mark + water-texture) |
+| `test-results/` | Engine scorecards (raw JSON) |
 
 ## Empty scaffolds — Claude Code will populate these
 

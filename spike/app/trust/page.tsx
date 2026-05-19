@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Trust & Security — PromptDolphin",
+  title: "Trust & Security",
   description: "Written for IT administrators, not marketing. How PromptDolphin's zero-retention architecture works and how to verify it.",
 };
 

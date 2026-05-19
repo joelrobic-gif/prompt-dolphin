@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-05-19T23:22:53.253Z",
+  "config": {
+    "iterations": 10000,
+    "promptCorpus": 80,
+    "models": [
+      "claude",
+      "chatgpt",
+      "gemini",
+      "copilot",
+      "grok"
+    ],
+    "paramCombinations": 5120
+  },
+  "functional": {
+    "totalCases": 400,
+    "validCases": 400,
+    "passRatePct": 100,
+    "archetypeCounts": {
+      "regulatory": 19,
+      "email": 5,
+      "general": 12,
+      "investor": 9,
+      "strategy": 10,
+      "meeting": 7,
+      "slides": 9,
+      "research": 9
+    },
+    "failures": []
+  },
+  "performance": {
+    "iterations": 10000,
+    "totalWallTimeMs": 21.2746,
+    "throughputPerSec": 470044.0901356548,
+    "p50Ms": 0.0007000000000019213,
+    "p95Ms": 0.0015000000000000568,
+    "p99Ms": 0.002600000000001046,
+    "p999Ms": 0.07450000000000045,
+    "maxMs": 0.3211999999999975,
+    "meanMs": 0.0010426400000000133,
+    "outputSizeP50": 892,
+    "outputSizeP95": 1047,
+    "outputSizeMax": 1202,
+    "totalOutputMB": 8.440834999084473,
+    "stressFailures": 0
+  },
+  "scale": {
+    "concurrentUsers": 1000,
+    "promptsPerUser": 10,
+    "totalConcurrent": 10000,
+    "wallTimeMs": 7.2435000000000045,
+    "throughputPerSec": 1380548.077586801
+  },
+  "cost": {
+    "railwayMonthlyUSD": 5,
+    "bandwidthGB": 100,
+    "avgPageKB": 200,
+    "maxMonthlyPageViews": 524288,
+    "costPerPageView": 0.0000095367431640625,
+    "costPerPromptGenerated": 0,
+    "costAt1kConcurrentUsers": 0,
+    "costAt100kDailyPrompts": 0
+  },
+  "verdict": {
+    "pass": true,
+    "criteria": {
+      "passRate99pct": true,
+      "zeroStressFailures": true,
+      "p99Under5ms": true
+    }
+  }
+}
