@@ -400,8 +400,8 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#F5F9FC]">
 
-      {/* Hero */}
-      <section className="relative w-full h-[70vh] min-h-[420px] sm:min-h-[480px] md:min-h-[560px] max-h-[800px] overflow-hidden">
+      {/* Compact hero banner — dolphin photo + headline only, no CTA */}
+      <section className="relative w-full h-[40vh] min-h-[280px] sm:min-h-[320px] md:min-h-[360px] max-h-[480px] overflow-hidden">
         <Image
           src="/brand/dolphin-hero.jpg"
           alt="A dolphin curving through deep ocean water"
@@ -409,39 +409,29 @@ export default function Home() {
           className="object-cover"
           quality={85}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F35]/90 via-[#0A1F35]/55 to-[#0A1F35]/10" />
-        <div className="absolute inset-0 flex items-end pb-10 sm:pb-12 md:pb-16 lg:pb-20">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F35]/90 via-[#0A1F35]/60 to-[#0A1F35]/20" />
+        <div className="absolute inset-0 flex items-end pb-6 sm:pb-8 md:pb-10">
           <div className="w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-10 lg:px-16">
             <h1
-              className="text-[#F5F9FC] font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-[1.05] tracking-tight max-w-[20ch]"
+              className="text-[#F5F9FC] font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-[1.05] tracking-tight max-w-[22ch]"
               style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}
             >
               Your AI is only as good as{" "}
               <span className="text-[#A67C3D]">your prompt.</span>
             </h1>
-            <p className="mt-4 sm:mt-5 text-[#C4D2E0] text-sm sm:text-base md:text-lg lg:text-xl max-w-[60ch] leading-relaxed">
-              Describe your task in one sentence. PromptDolphin engineers it into a paste-ready prompt — tuned to{" "}
-              <span className="text-[#F5F9FC] font-medium">Claude, ChatGPT, Gemini, Copilot, or Grok</span>. 60 seconds. Free. Nothing leaves your browser.
-            </p>
-            <a
-              href="#input-section"
-              className="inline-block mt-5 sm:mt-6 px-5 sm:px-6 py-2.5 sm:py-3 bg-[#A67C3D] text-white rounded-md text-sm sm:text-base font-semibold hover:bg-[#8a6530] transition-colors tracking-wide"
-            >
-              Try it now →
-            </a>
           </div>
         </div>
       </section>
 
-      {/* App */}
-      <section id="input-section" className="py-12 sm:py-14 md:py-16 lg:py-20 px-4 sm:px-6 md:px-8">
+      {/* App — input is the action, immediately visible below hero */}
+      <section id="input-section" className="py-8 sm:py-10 md:py-12 lg:py-14 px-4 sm:px-6 md:px-8">
         <div className="w-full max-w-2xl md:max-w-3xl mx-auto">
 
-          <div className="text-center mb-8">
-            <p className="text-xs uppercase tracking-widest text-[#A67C3D] font-semibold mb-2">
-              Describe your task
+          <div className="text-center mb-6 md:mb-8">
+            <p className="text-[#4A5A6E] text-sm md:text-base">
+              Describe your task in one sentence. PromptDolphin engineers it into a paste-ready prompt — tuned to{" "}
+              <span className="font-semibold text-[#143352]">Claude, ChatGPT, Gemini, Copilot, or Grok</span>. 60 seconds. Free. Nothing leaves your browser.
             </p>
-            <p className="text-[#4A5A6E] text-sm">
               Plain language. One sentence. We handle the engineering.
             </p>
           </div>
@@ -689,13 +679,15 @@ export default function Home() {
           </a>
         </p>
         <p className="text-[11px] text-[#8FA6BC] space-x-3">
-          <a href="/trust" className="hover:text-[#F5F9FC] transition-colors">Goldfish memory — nothing stored</a>
+          <a href="/for-teams" className="hover:text-[#F5F9FC] transition-colors">For teams</a>
+          <span>·</span>
+          <a href="/trust" className="hover:text-[#F5F9FC] transition-colors">Trust</a>
+          <span>·</span>
+          <a href="/privacy" className="hover:text-[#F5F9FC] transition-colors">Privacy</a>
           <span>·</span>
           <a href="https://github.com/joelrobic-gif/prompt-dolphin" target="_blank" rel="noopener noreferrer" className="hover:text-[#F5F9FC] transition-colors">
             Open-source engine
           </a>
-          <span>·</span>
-          <a href="/privacy" className="hover:text-[#F5F9FC] transition-colors">Privacy</a>
           <span>·</span>
           <span>No tracking cookies</span>
         </p>
