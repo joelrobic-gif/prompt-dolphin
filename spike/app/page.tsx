@@ -6,7 +6,7 @@ import Image from "next/image";
 type Model = "claude" | "chatgpt" | "gemini" | "copilot" | "grok";
 type Archetype =
   | "email" | "strategy" | "meeting" | "slides"
-  | "research" | "regulatory" | "investor" | "general";
+  | "research" | "regulatory" | "investor" | "implementation" | "general";
 
 type Connector =
   | "none" | "m365" | "m365_deep" | "workspace"
@@ -45,12 +45,27 @@ function detectArchetype(task: string): Archetype {
   const t = task.toLowerCase();
   if (/regulatory|submission|fda|health canada|ema|tga|mhra|nda|bla/.test(t)) return "regulatory";
   if (/investor|quarterly update|q[1-4] update|pipeline progress|biotech update/.test(t)) return "investor";
+  // Implementation/build tasks — check BEFORE email so "draft a webpage" doesn't route to email
+  if (/\b(build|implement|create|generate|develop|code|prototype|make me|provide|design)\b.*(html|page|web|app|site|component|dashboard|widget|interactive|editable|draggable|resizable|tool|spa|ui|report.*html)/.test(t)) return "implementation";
+  if (/\b(html|css|javascript|react|vue|svelte|next\.?js|tailwind|component|interactive|spa|webapp|web app|web application|content[- ]?editable|draggable|resizable)\b/.test(t)) return "implementation";
   if (/\bemail\b|write to|message to|letter to|correspondence|draft.*to/.test(t)) return "email";
   if (/strategy|strategic|should we|recommend|options for|build or buy|make or buy/.test(t)) return "strategy";
   if (/slide|deck|presentation|board update|powerpoint|keynote/.test(t)) return "slides";
   if (/meeting|prep for|prepare for|qbr|agenda|brief for|debrief/.test(t)) return "meeting";
   if (/research|summarize|synthesis|synthesize|analyze|report on|literature/.test(t)) return "research";
   return "general";
+}
+
+// Auto-detect output format from task text (returns null if no signal).
+function detectOutputFormat(task: string): OutputFormat | null {
+  const t = task.toLowerCase();
+  if (/\bhtml\b|web ?page|web report|interactive (?:page|report|dashboard|tool)|draggable|resizable|inline edit|content[- ]?editable/.test(t)) return "html";
+  if (/\bpowerpoint\b|\bpptx\b|slide deck|slides? for/.test(t)) return "powerpoint";
+  if (/\bexcel\b|\bxlsx\b|spreadsheet|pivot table/.test(t)) return "excel";
+  if (/\bword (?:doc|document)\b|\bdocx\b/.test(t)) return "word";
+  if (/\bone[- ]?pager\b|\b1[- ]?pager\b|executive summary on/.test(t)) return "pdf_1pager";
+  if (/\bresearch report\b|full report|long[- ]form (?:research|analysis)|\b\d+[- ]page (?:report|paper)/.test(t)) return "research_report";
+  return null;
 }
 
 // ─── Archetype content library ────────────────────────────────────────────────
@@ -103,6 +118,13 @@ const ARCHETYPES: Record<Archetype, Omit<PromptParts, "task">> = {
     format: "Pipeline progress with specific milestones | Key catalysts ahead with realistic timelines | Financial position | Candid, specific outlook",
     constraints: "No hype. No buried bad news. No boilerplate. All forward-looking statements must be clearly labeled as such.",
     critique: "Would an institutional investor trust this? Is negative news as visible as positive? Are all timelines defensible?",
+  },
+  implementation: {
+    role: "a senior full-stack engineer with 15+ years shipping production-grade interactive web applications. You have deep expertise in modern HTML/CSS/JS, design systems, accessibility (WCAG 2.2 AA), performance, and choosing battle-tested libraries (interact.js, react-rnd, ProseMirror, Quill, Tiptap, GridStack, Sortable.js) over hand-rolled solutions",
+    context: "Address every technical requirement in the task explicitly — do not skip features. State your tech stack and library choices at the top of the output with one-sentence justification each. If a requirement is ambiguous, implement the most professional interpretation and note the assumption inline. The result must work end-to-end when copied into a single file with no further edits.",
+    format: "1. Tech stack & library choices (bulleted, one-sentence rationale each) | 2. Complete production-ready code in a single self-contained block (HTML+CSS+JS or framework file) | 3. Inline comments only at non-obvious decisions | 4. Accessibility notes (keyboard nav, ARIA, focus management) | 5. Browser support + performance notes | 6. How to extend (named extension points only — no placeholder text)",
+    constraints: "No placeholders like '...' or '/* add more here */' or 'you can extend this'. No partial implementations. No 'this is a starting point'. Every feature named in the task must be implemented and functional. No external image URLs (use SVG inline or CSS). No external script CDNs unless the library is named and pinned to a version. No console.log debug noise. No TODO comments.",
+    critique: "Is every feature from the task implemented and working? Are library choices defensible and current (2025-2026)? Will the code render correctly in one paste? Are accessibility hooks present? Is anything left as a placeholder?",
   },
   general: {
     role: "a world-class expert in the relevant domain, combining deep knowledge with precise, clear communication",
@@ -327,6 +349,7 @@ const ARCHETYPE_LABELS: Record<Archetype, string> = {
   research: "Research Synthesis",
   regulatory: "Regulatory Draft",
   investor: "Investor Update",
+  implementation: "Build / HTML / Code",
   general: "General Task",
 };
 
@@ -365,7 +388,10 @@ export default function Home() {
   function engineer() {
     if (!task.trim()) return;
     const detected = detectArchetype(task.trim());
+    const autoFmt = detectOutputFormat(task.trim());
     setArchetype(detected);
+    // Auto-set output format if the task implies one (user can still override after)
+    if (autoFmt && outputFormat === "prose") setOutputFormat(autoFmt);
     // useEffect will re-assemble
     setTimeout(() => {
       document.getElementById("output")?.scrollIntoView({ behavior: "smooth", block: "start" });
