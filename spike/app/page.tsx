@@ -341,6 +341,81 @@ const RICH_MEDIA_LABELS: { id: RichMedia; label: string }[] = [
   { id: "presentation_package", label: "Full presentation package" },
 ];
 
+// Format preview data — same content every time, educates users on format capabilities + tradeoffs
+const FORMAT_PREVIEWS: Record<OutputFormat, {
+  icon: string;
+  summary: string;
+  capabilities: string[];
+  pros: string[];
+  cons: string[];
+  example: string;
+}> = {
+  prose: {
+    icon: "¶",
+    summary: "Flowing written response — paragraphs + inline bullets",
+    capabilities: ["Mixed prose and bullets", "Inline citations supported", "Conversational tone", "No fixed structure"],
+    pros: ["Works in any context", "Easy to skim", "Natural reading flow"],
+    cons: ["No structured data tables", "Hard to extract specific numbers", "Not exportable to slides/docs as-is"],
+    example: "Opening paragraph framing the situation in 2-3 sentences.\n\nAnalysis paragraph covering the core finding with reasoning.\n\nKey points:\n• Specific evidence point\n• Specific evidence point\n• Specific evidence point\n\nClosing paragraph with concrete next step or recommendation.",
+  },
+  word: {
+    icon: "W",
+    summary: "Word document with H1/H2/H3 hierarchy + tables",
+    capabilities: ["3 heading levels (H1/H2/H3)", "Plain-text tables (pipe-delimited)", "Bullet lists", "Paragraphs sized for 12pt reading"],
+    pros: ["Direct paste into Word", "Editable downstream by humans", "Clear hierarchy = scannable", "Print-friendly"],
+    cons: ["No native charts (use Excel for those)", "No interactivity", "Static once exported"],
+    example: "# Main Title\n\n## Section 1\nBody paragraph with reasoning and evidence...\n\n### Subsection\n- Bullet point\n- Bullet point\n\nMetric  | Q1  | Q2\n--------|-----|----\nRevenue | $1M | $1.4M",
+  },
+  powerpoint: {
+    icon: "P",
+    summary: "Slide-by-slide outline with speaker notes",
+    capabilities: ["Max 12 slides", "Insight-titled (not topic-titled)", "≤35 words body per slide", "Speaker notes per slide", "AGENDA + NEXT STEPS bookends"],
+    pros: ["Paste-ready into PPT outline view", "Forces clarity via word cap", "Speaker notes included free", "Audience-ready structure"],
+    cons: ["Strict 35-word body cap per slide", "Not for dense data (use Excel)", "Visuals need separate generation"],
+    example: "[SLIDE 1 — Q3 ahead of plan, EBITDA up 18%]\n• Revenue +12% YoY\n• Margin expansion +6pp\n• Free cash flow tripled\n[SPEAKER NOTES: 2-3 sentence expansion the presenter reads/paraphrases.]\n\n[SLIDE 2 — ...]",
+  },
+  excel: {
+    icon: "X",
+    summary: "Excel-ready tables with summary row",
+    capabilities: ["Multiple tables per output", "Header row capitalized", "Pipe-delimited paste-ready format", "SUMMARY row where applicable", "Pivot-table ready structure"],
+    pros: ["Direct paste into Excel", "Pivot/filter/sort downstream", "Number-dense use cases", "Data manipulation friendly"],
+    cons: ["No prose explanations included", "No narrative or context", "Pure data — not a report"],
+    example: "Region | Units | Revenue | Margin\n-------|-------|---------|--------\nNorth  | 1200  | $480K   | 32%\nSouth  | 980   | $392K   | 28%\nWest   | 1450  | $580K   | 35%\nSUMMARY| 3630  | $1.45M  | 32%",
+  },
+  email: {
+    icon: "@",
+    summary: "Ready-to-send executive email (200 words max)",
+    capabilities: ["Subject line", "3-paragraph body (context/point/next step)", "Professional sign-off", "Hard 200-word cap", "No pleasantries"],
+    pros: ["Paste-ready to Outlook/Gmail", "Reader-respectful brevity", "Clear ask in every email", "Executive-grade tone"],
+    cons: ["Length cap blocks complex topics", "Wrong for documentation", "Wrong for analysis or research"],
+    example: "Subject: Q3 launch — recommending 2-week delay\n\nWe identified a final blocker in QA on the analytics module that affects revenue reporting accuracy.\n\nMy recommendation is to slip the launch from Sep 15 to Sep 29 to fix this cleanly rather than ship a known issue.\n\nI'll send a revised launch plan Friday and can walk you through impact on Monday.\n\nBest,\nJ",
+  },
+  html: {
+    icon: "</>",
+    summary: "Semantic HTML page (web-ready)",
+    capabilities: ["<h1>/<h2>/<p>/<ul>/<table> tags", "Summary section at top", "Inline accessibility hooks (ARIA)", "Footer with date", "Print stylesheet compatible"],
+    pros: ["Web-publishable as-is", "SEO-friendly structure", "Accessibility built in", "Easy convert to PDF"],
+    cons: ["Needs hosting to render", "Not editable in Word", "Manual to convert to slides"],
+    example: "<h1>Report Title</h1>\n<summary>Two-to-three sentence summary at the top.</summary>\n<h2>Section</h2>\n<p>Body paragraph...</p>\n<ul><li>Point</li><li>Point</li></ul>\n<table><tr><th>Col</th></tr><tr><td>data</td></tr></table>\n<footer>Generated 2026-05-21</footer>",
+  },
+  pdf_1pager: {
+    icon: "1",
+    summary: "Executive one-pager (500 words max, prints on one page)",
+    capabilities: ["Situation (2 sentences)", "Key Finding (1 bold sentence)", "Evidence (3 bullets)", "Recommendation (1-2 sentences)", "Next Step (1 sentence)"],
+    pros: ["Maximum signal density", "Print-ready immediately", "Shareable as one screenshot", "Forces clarity discipline"],
+    cons: ["Cuts deep analysis", "Wrong for stakeholder education", "Can feel terse to new audiences"],
+    example: "SITUATION\nCustomer churn climbed 4pp in Q3, concentrated in mid-market accounts.\n\nKEY FINDING\n**Onboarding completion correlates 0.78 with 12-month retention.**\n\nEVIDENCE\n• Cohort that completed all 5 onboarding steps: 88% retained\n• Cohort that completed 0-2 steps: 51% retained\n• Mid-market has 47% partial-completion rate\n\nRECOMMENDATION\nFund a dedicated mid-market onboarding pod for Q4.\n\nNEXT STEP\nApprove $180K reallocation at Tuesday LT meeting.",
+  },
+  research_report: {
+    icon: "R",
+    summary: "Full research report (3,000–6,000 words)",
+    capabilities: ["Executive Summary (≤300 words)", "Methodology section", "Findings with subsections", "Analysis", "Numbered Recommendations", "Limitations + Caveats", "Appendix with sources"],
+    pros: ["Comprehensive coverage", "Citation-ready", "Long-form rigorous analysis", "Academic-grade structure"],
+    cons: ["Time-intensive to read", "Wrong for quick decisions", "Overkill for simple questions"],
+    example: "1. EXECUTIVE SUMMARY\n   [≤300 words — findings + recommendation]\n\n2. BACKGROUND AND CONTEXT\n3. METHODOLOGY\n   3.1 Data sources\n   3.2 Analytical framework\n4. FINDINGS\n   4.1 Finding A\n   4.2 Finding B\n5. ANALYSIS AND IMPLICATIONS\n6. RECOMMENDATIONS\n   1. [prioritized]\n   2. [prioritized]\n7. LIMITATIONS AND CAVEATS\n8. APPENDIX (sources, supporting data)",
+  },
+};
+
 const ARCHETYPE_LABELS: Record<Archetype, string> = {
   email: "Executive Email",
   strategy: "Strategy Brief",
@@ -568,6 +643,57 @@ export default function Home() {
                           <option key={f.id} value={f.id}>{f.label}</option>
                         ))}
                       </select>
+
+                      {/* Format preview card — same content every time, educates user on capabilities + tradeoffs */}
+                      <div className="mt-3 border border-[#C4D2E0] rounded-md bg-[#F5F9FC] overflow-hidden">
+                        <div className="flex items-center gap-3 px-4 py-3 bg-white border-b border-[#C4D2E0]">
+                          <div className="flex items-center justify-center w-10 h-10 rounded-md bg-[#143352] text-[#F5F9FC] font-serif text-xl font-bold">
+                            {FORMAT_PREVIEWS[outputFormat].icon}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-[#0E1A2A]">
+                              {FORMAT_LABELS.find((f) => f.id === outputFormat)?.label}
+                            </p>
+                            <p className="text-xs text-[#4A5A6E] leading-snug">
+                              {FORMAT_PREVIEWS[outputFormat].summary}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 px-4 py-3 text-xs">
+                          <div>
+                            <p className="font-semibold text-[#143352] mb-1.5 uppercase tracking-wider text-[10px]">Capabilities</p>
+                            <ul className="space-y-1 text-[#0E1A2A]">
+                              {FORMAT_PREVIEWS[outputFormat].capabilities.map((c, i) => (
+                                <li key={i} className="leading-snug">· {c}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-[#1F6F4F] mb-1.5 uppercase tracking-wider text-[10px]">Pros</p>
+                            <ul className="space-y-1 text-[#0E1A2A]">
+                              {FORMAT_PREVIEWS[outputFormat].pros.map((p, i) => (
+                                <li key={i} className="leading-snug">+ {p}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-[#8B3A2E] mb-1.5 uppercase tracking-wider text-[10px]">Cons</p>
+                            <ul className="space-y-1 text-[#0E1A2A]">
+                              {FORMAT_PREVIEWS[outputFormat].cons.map((c, i) => (
+                                <li key={i} className="leading-snug">− {c}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div className="px-4 pb-3">
+                          <p className="font-semibold text-[#4A5A6E] mb-1.5 uppercase tracking-wider text-[10px]">Example structure</p>
+                          <pre className="bg-[#0A1F35] text-[#C4D2E0] rounded-md p-3 text-[11px] font-mono whitespace-pre-wrap leading-relaxed overflow-x-auto max-h-44">
+{FORMAT_PREVIEWS[outputFormat].example}
+                          </pre>
+                        </div>
+                      </div>
                     </div>
 
                     <div>
