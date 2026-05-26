@@ -500,6 +500,154 @@ const RICH_MEDIA: Record<string, string> = {
 };
 
 // ============================================================================
+// OUTPUT FORMATS (12) — what the AI delivers + how to ask for it
+// ============================================================================
+
+export type OutputFormatId =
+  | 'text' | 'markdown' | 'word' | 'powerpoint' | 'excel' | 'csv'
+  | 'html' | 'pdf_1pager' | 'research_report' | 'email' | 'power_bi' | 'json';
+
+export interface OutputFormat {
+  id: OutputFormatId;
+  label: string;
+  icon: string;
+  category: 'text' | 'document' | 'data' | 'visual';
+  valueShort: string;
+  audience: string;
+  downloadTruth: string;
+  injection: string;
+}
+
+export const OUTPUT_FORMATS: Record<OutputFormatId, OutputFormat> = {
+  text: {
+    id: 'text',
+    label: 'Plain text',
+    icon: 'T',
+    category: 'text',
+    valueShort: 'A normal conversational answer. No headings, no fancy layout — just words.',
+    audience: 'Anyone reading the reply in chat or pasting into an email body.',
+    downloadTruth: 'No file. You read it in the chat or paste it where you need it.',
+    injection: '',
+  },
+  markdown: {
+    id: 'markdown',
+    label: 'Markdown',
+    icon: 'M',
+    category: 'document',
+    valueShort: 'A formatted document with headings, lists, and links — readable as plain text but renders nicely in GitHub, Notion, Obsidian, Slack.',
+    audience: 'Engineers, technical writers, anyone using Notion / GitHub / Obsidian.',
+    downloadTruth: 'Copy the text and save as a .md file, or paste into any markdown-aware tool.',
+    injection: 'Format the entire response as Markdown:\n- Use # H1, ## H2, ### H3 for hierarchy\n- Use **bold**, *italic*, `inline code`, ```fenced``` code blocks where appropriate\n- Use - bullets and 1. numbered lists\n- Use | tables | for | structured | data |\n- Use > blockquotes for callouts\n- Use [link text](url) for any URL.',
+  },
+  word: {
+    id: 'word',
+    label: 'Word document',
+    icon: 'W',
+    category: 'document',
+    valueShort: 'A formal business document ready to paste into Microsoft Word — section headings, paragraphs, tables, bullets all properly structured.',
+    audience: 'Business pros writing memos, proposals, reports, contracts.',
+    downloadTruth: 'Paste the response into a blank Word doc — formatting transfers. Or save as .docx via Word.',
+    injection: 'Format as a Microsoft Word document:\n- Use # for H1 titles, ## for H2 section headings, ### for H3 subsections\n- Use plain dash bullets and numbered lists\n- Use | pipe | tables | for tabular data | (Word recognizes these)\n- No code fences or backticks\n- Include a 1-line title at the top in H1\n- Format paragraphs as full sentences, not telegraphic notes.',
+  },
+  powerpoint: {
+    id: 'powerpoint',
+    label: 'PowerPoint slides',
+    icon: 'P',
+    category: 'visual',
+    valueShort: 'A slide-by-slide deck outline with titles, bullets, and speaker notes — ready to drop into PowerPoint or Keynote.',
+    audience: 'Executives presenting to boards, sales teams pitching, anyone running a meeting with slides.',
+    downloadTruth: 'Each "slide" is a chunk of text you paste into one PowerPoint slide. ChatGPT Plus / Claude can also export .pptx for some plans.',
+    injection: 'Format as a PowerPoint slide deck. For each slide use this exact structure:\n\n[SLIDE 1 — Insight title (not a topic title)]\n• Bullet 1 (max 8 words)\n• Bullet 2 (max 8 words)\n• Bullet 3 (max 8 words)\n[SPEAKER NOTES: 2-3 sentences expanding what the presenter says aloud]\n\nFollow Minto pyramid: insight title first, supporting bullets below. Max 12 slides unless explicitly told otherwise. Max 35 words of body per slide.',
+  },
+  excel: {
+    id: 'excel',
+    label: 'Excel spreadsheet',
+    icon: 'X',
+    category: 'data',
+    valueShort: 'A spreadsheet with columns, rows, headers, and formulas — paste into Excel or Google Sheets and it lays out correctly.',
+    audience: 'Analysts, finance, ops — anyone working with tabular numeric data.',
+    downloadTruth: 'Paste the table into Excel — column splits work automatically. Or ask the AI to export as .xlsx (Plus / Claude file output).',
+    injection: 'Format as an Excel spreadsheet. Output as a single table (or multiple tables clearly separated by headings):\n\n- Row 1: column headers (bold, descriptive)\n- Use | pipe | separators | per row | (Excel paste recognizes tabs and pipes)\n- Include a SUMMARY row at the bottom with totals / averages where appropriate\n- For any computed columns, ALSO output the formula in a separate column labeled "Formula" using Excel syntax (=SUM(B2:B10), =AVERAGE(...), etc.)\n- No prose between rows. Tables only.\n- If multiple sheets are needed, separate with === SHEET: name === headers.',
+  },
+  csv: {
+    id: 'csv',
+    label: 'CSV data',
+    icon: 'C',
+    category: 'data',
+    valueShort: 'Pure comma-separated data — no formatting, no styling, just rows. Imports into anything: Excel, Sheets, Python, R, every database, every BI tool.',
+    audience: 'Data engineers, anyone moving data between tools, automation workflows.',
+    downloadTruth: 'Copy the output, paste into a text editor, save as .csv. Or save directly with most modern AI chat tools that offer file output.',
+    injection: 'Format as CSV (comma-separated values) ONLY. Rules:\n- First row: column headers\n- One row per record, fields separated by commas\n- Wrap fields containing commas, quotes, or newlines in double quotes\n- Escape double quotes inside fields by doubling them ("")\n- No prose, no headings, no commentary outside the CSV body — output ONLY the CSV.',
+  },
+  html: {
+    id: 'html',
+    label: 'HTML page',
+    icon: 'H',
+    category: 'visual',
+    valueShort: 'A complete styled web page you can save and open in any browser — headings, sections, tables, even interactive elements.',
+    audience: 'Anyone sharing a deliverable that needs to look polished on any device, no app required.',
+    downloadTruth: 'Copy the HTML, save as `report.html`, double-click — opens as a website in your browser. Share via email or hosting.',
+    injection: 'Format as a complete, standalone HTML5 document. Rules:\n- Start with <!DOCTYPE html><html lang="en"><head> ... </head><body> ... </body></html>\n- Include <meta charset="utf-8"> and <meta name="viewport" content="width=device-width, initial-scale=1">\n- Inline CSS in a <style> tag in the <head> — no external dependencies, no CDN links\n- Use semantic HTML: <header>, <main>, <section>, <article>, <footer>, <h1>-<h6>, <ul>/<ol>, <table>\n- Include a <summary> or hero block at the top, a <footer> with the date at the bottom\n- Make it print-friendly (use @media print rules)\n- Keep design clean and professional — system fonts, generous whitespace, max-width 800px content column.',
+  },
+  pdf_1pager: {
+    id: 'pdf_1pager',
+    label: 'PDF one-pager',
+    icon: '1',
+    category: 'document',
+    valueShort: 'A single-page executive summary — situation, finding, evidence, recommendation, next step. Fits on one printed page.',
+    audience: 'Executives, board members, anyone with 60 seconds to absorb a decision.',
+    downloadTruth: 'Paste into Word or Google Docs, set margins narrow, export to PDF. Or use HTML output + browser "Save as PDF".',
+    injection: 'Format as a one-page executive summary that fits on a single printed page. Use this exact 5-section structure:\n\n# [HEADLINE — one sentence stating the recommendation or finding]\n\n## SITUATION (2 sentences)\nWhat is happening and why we care.\n\n## KEY FINDING (1 bold sentence)\n**The single most important insight.**\n\n## EVIDENCE (3 bullets, one line each)\n• Data point or fact 1\n• Data point or fact 2\n• Data point or fact 3\n\n## RECOMMENDATION (1-2 sentences)\nThe specific action to take.\n\n## NEXT STEP (1 sentence)\nThe immediate next decision or action required and by whom.\n\nMax 500 words total. No filler. Every word earns its place.',
+  },
+  research_report: {
+    id: 'research_report',
+    label: 'Research report',
+    icon: 'R',
+    category: 'document',
+    valueShort: 'A full academic-grade report with executive summary, methodology, findings, analysis, recommendations, limitations, and appendix. 3,000-6,000 words.',
+    audience: 'Academics, policy researchers, consulting deliverables, deep dives, white papers.',
+    downloadTruth: 'Paste into Word or Google Docs, apply heading styles, export to PDF. Or output as Markdown then convert.',
+    injection: 'Format as a full long-form research report (3000-6000 words). Use this exact section structure:\n\n# [Report title — descriptive and specific]\n\n## 1. Executive Summary (≤ 300 words)\nFindings and recommendation in 1 paragraph + bullets.\n\n## 2. Background and Context\nWhy this question matters, what is already known, what gap exists.\n\n## 3. Methodology\n### 3.1 Data sources\n### 3.2 Analytical framework\n### 3.3 Scope and exclusions\n\n## 4. Findings\nOne subsection per major finding, with evidence and citations.\n\n## 5. Analysis and Implications\nWhat the findings mean, second-order effects.\n\n## 6. Recommendations\nNumbered, prioritized, each with a rationale and an owner.\n\n## 7. Limitations and Caveats\nHonest list of what we couldn\'t determine and why.\n\n## 8. Appendix\nSupporting data, additional charts, glossary, full source list.\n\nCite every external claim inline with [source name, year, page]. No unverified speculation as fact.',
+  },
+  email: {
+    id: 'email',
+    label: 'Email draft',
+    icon: 'E',
+    category: 'text',
+    valueShort: 'A ready-to-send email: subject line, opening, body, ask, and sign-off. Under 250 words. Paste into Gmail / Outlook and send.',
+    audience: 'Anyone writing professional email — execs, sales, customer success, founders.',
+    downloadTruth: 'Copy and paste into your email client. Subject line goes in the subject field, body goes in the body. No file.',
+    injection: 'Format as a complete email. Use this exact structure:\n\nSubject: [punchy, specific, under 60 chars — promises what is inside]\n\n[Greeting — match formality to recipient]\n\n[Body paragraph 1 — context in 1-2 sentences]\n\n[Body paragraph 2 — the ask or key info]\n\n[Body paragraph 3 if needed — supporting details]\n\n[Explicit ask: "Could you..." / "Please confirm by..."]\n\n[Sign-off — match formality]\n[Name]\n\nMax 250 words total. No filler ("just", "I hope this finds you well"). Active voice only. The ask must be unambiguous in 30 seconds of reading.',
+  },
+  power_bi: {
+    id: 'power_bi',
+    label: 'Power BI / Tableau spec',
+    icon: 'B',
+    category: 'data',
+    valueShort: 'A dashboard specification: which charts to build, which fields to use, which DAX formulas to write, what filters and KPIs to expose. Hand to a BI developer or build it yourself.',
+    audience: 'BI developers, data analysts, anyone briefing a dashboard build.',
+    downloadTruth: 'Use the spec to build the dashboard yourself in Power BI or Tableau, or hand it to a BI dev as the build brief.',
+    injection: 'Format as a Power BI / Tableau dashboard specification. Output these sections:\n\n## 1. Dashboard Purpose\nOne sentence: who uses it, what decision it supports.\n\n## 2. Data Sources\nList each table / dataset, its grain, key fields, refresh frequency.\n\n## 3. KPI Tiles (top of dashboard)\nFor each KPI: name, formula (DAX or calculation), target value, conditional formatting rule.\n\n## 4. Visuals\nFor each chart: chart type (bar/line/scatter/treemap/etc.), x-axis, y-axis, color encoding, filters applied, business question it answers.\n\n## 5. Filters / Slicers\nWhich dimensions users can filter on, default selections.\n\n## 6. DAX / Calculated Measures\nFor any non-trivial calculation, write the exact DAX or Tableau formula.\n\n## 7. Drill-throughs\nWhich charts drill to which detail views.\n\n## 8. Performance Notes\nIndexing, aggregation, query optimization guidance.\n\nNo prose narrative — this is a build brief.',
+  },
+  json: {
+    id: 'json',
+    label: 'JSON data',
+    icon: 'J',
+    category: 'data',
+    valueShort: 'Structured machine-readable data. Use it as input to another tool, an API, or a script. No prose.',
+    audience: 'Developers, automation builders, anyone piping AI output into another system.',
+    downloadTruth: 'Copy the JSON, save as a .json file, or feed it directly to your code / API / workflow.',
+    injection: 'Format the response as a single valid JSON object. Rules:\n- Output ONLY JSON. No prose before, no prose after, no markdown fences.\n- Use snake_case keys.\n- Use ISO 8601 for any dates ("2026-05-25") and ISO 8601 with timezone for timestamps ("2026-05-25T14:30:00Z").\n- Use null for missing values, not empty strings.\n- Arrays for repeated entities, objects for named groupings.\n- Include a top-level "schema_version": "1.0" and "generated_at": "<ISO timestamp>".\n- The output must parse cleanly with JSON.parse() — no trailing commas, no comments, no unescaped quotes inside strings.',
+  },
+};
+
+export const OUTPUT_FORMAT_ORDER: OutputFormatId[] = [
+  'text', 'markdown', 'email', 'word', 'pdf_1pager', 'research_report',
+  'powerpoint', 'html',
+  'excel', 'csv', 'power_bi', 'json',
+];
+
+// ============================================================================
 // CLASSIFIER
 // ============================================================================
 
@@ -550,9 +698,11 @@ export interface Spine {
 export function buildSpine(args: {
   task: string; archetype: ArchetypeId; quality: QualityId;
   userConstraints?: string[]; examples?: string[];
+  outputFormat?: OutputFormatId;
 }): Spine {
   const arch = ARCHETYPES[args.archetype];
   const qa = QUALITY_AXIS[args.quality];
+  const fmt = args.outputFormat ? OUTPUT_FORMATS[args.outputFormat] : null;
   const context = [arch.context, qa.depth.summary].filter(Boolean).join('\n\n');
   const reasoning = [REASONING_PRESETS[qa.reasoning] || '', arch.reasoning].filter(Boolean).join('\n\n');
   const exclParts = [arch.exclusions, `Max length: ${qa.depth.maxWords} words.`];
@@ -562,13 +712,20 @@ export function buildSpine(args: {
   const exclusions = exclParts.filter(Boolean).join('\n\n');
   const exList = [...arch.examples, ...(args.examples ?? [])];
   const examples = exList.length ? exList.map((e, i) => `${i + 1}. ${e}`).join('\n') : '';
+  // Format: archetype's preferred structure + (if user picked a specific output format) format-specific injection
+  const formatParts = [arch.format];
+  if (fmt && fmt.injection) {
+    formatParts.push('=== OUTPUT FORMAT REQUIREMENTS ===');
+    formatParts.push(fmt.injection);
+  }
+  const formatBlock = formatParts.join('\n\n');
   const extraParts = [
     qa.reviewMode ? REVIEW_MODES[qa.reviewMode] : '',
     qa.richMedia ? RICH_MEDIA[qa.richMedia] : '',
   ].filter(Boolean);
   return {
     role: arch.role, task: String(args.task).trim(),
-    context, reasoning, format: arch.format, exclusions,
+    context, reasoning, format: formatBlock, exclusions,
     examples, critique: arch.critique, extra: extraParts.join('\n\n'),
   };
 }
@@ -623,6 +780,7 @@ export interface EngineerOptions {
   archetype?: ArchetypeId;
   userConstraints?: string[];
   examples?: string[];
+  outputFormat?: OutputFormatId;
 }
 
 export interface EngineerResult {
@@ -630,6 +788,7 @@ export interface EngineerResult {
   archetype: ArchetypeId;
   quality: QualityId;
   adapter: AdapterId;
+  outputFormat: OutputFormatId;
   spine: Spine;
   preflight: PreflightResult;
   classification: { winner: ArchetypeId; confidence: number; runnerUp: ArchetypeId | null; scores: Record<string, { score: number; matches: number; specificity: number }> };
@@ -638,17 +797,18 @@ export interface EngineerResult {
 export function engineer(task: string, options: EngineerOptions = {}): EngineerResult {
   const adapter = options.adapter ?? 'claude';
   const quality = options.quality ?? 'fast_detailed';
+  const outputFormat = options.outputFormat ?? 'text';
   const userConstraints = options.userConstraints ?? [];
   const examples = options.examples ?? [];
   const cls = options.archetype
     ? { archetype: options.archetype, confidence: Infinity, runnerUp: null, scores: {} as ClassifyResult['scores'] }
     : classify(task);
   const archetype = cls.archetype;
-  const spine = buildSpine({ task, archetype, quality, userConstraints, examples });
+  const spine = buildSpine({ task, archetype, quality, userConstraints, examples, outputFormat });
   const engineered = render(spine, adapter);
   const pf = preflight(engineered, { task, userConstraints, spine });
   return {
-    engineered, archetype, quality, adapter, spine, preflight: pf,
+    engineered, archetype, quality, adapter, outputFormat, spine, preflight: pf,
     classification: { winner: cls.archetype, confidence: cls.confidence, runnerUp: cls.runnerUp, scores: cls.scores },
   };
 }

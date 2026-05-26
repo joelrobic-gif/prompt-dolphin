@@ -8,8 +8,11 @@ import {
   ADAPTER_ORDER,
   ADAPTERS,
   ARCHETYPES,
+  OUTPUT_FORMATS,
+  OUTPUT_FORMAT_ORDER,
   type AdapterId,
   type QualityId,
+  type OutputFormatId,
   type EngineerResult,
 } from "@/lib/engine-v2";
 import {
@@ -71,6 +74,7 @@ export default function Home() {
   const [task, setTask] = useState("");
   const [quality, setQuality] = useState<QualityId>("fast_detailed");
   const [adapter, setAdapter] = useState<AdapterId>("claude");
+  const [outputFormat, setOutputFormat] = useState<OutputFormatId>("text");
   const [userConstraints, setUserConstraints] = useState("");
   const [result, setResult] = useState<EngineerResult | null>(null);
   const [copied, setCopied] = useState(false);
@@ -141,17 +145,19 @@ export default function Home() {
     const r = engineer(task.trim(), {
       adapter,
       quality,
+      outputFormat,
       userConstraints: constraintsList,
     });
     setResult(r);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [adapter, quality, userConstraints]);
+  }, [adapter, quality, outputFormat, userConstraints]);
 
   function run() {
     if (!task.trim()) return;
     const r = engineer(task.trim(), {
       adapter,
       quality,
+      outputFormat,
       userConstraints: constraintsList,
     });
     setResult(r);
@@ -175,6 +181,7 @@ export default function Home() {
     setRefineOpen(false);
     setQuality("fast_detailed");
     setAdapter("claude");
+    setOutputFormat("text");
     setCopied(false);
     setTimeout(() => {
       textareaRef.current?.focus();
@@ -340,6 +347,41 @@ export default function Home() {
                 );
               })}
             </div>
+          </div>
+
+          {/* Output format row */}
+          <div className="mt-4">
+            <p className="text-xs text-[#4A5A6E] mb-2 font-semibold uppercase tracking-wider">
+              {T("format_heading")}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {OUTPUT_FORMAT_ORDER.map((fid) => {
+                const f = OUTPUT_FORMATS[fid];
+                const active = outputFormat === fid;
+                return (
+                  <button
+                    key={fid}
+                    onClick={() => setOutputFormat(fid)}
+                    title={`${f.valueShort}\n\n${T("format_ideal_for")}: ${f.audience}`}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-semibold transition-all ${
+                      active
+                        ? "border-[#143352] bg-[#143352] text-white"
+                        : "border-[#C4D2E0] bg-white text-[#0E1A2A] hover:border-[#143352] hover:bg-[#E8EFF5]"
+                    }`}
+                  >
+                    <span className={`inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold ${
+                      active ? "bg-[#A67C3D] text-white" : "bg-[#143352] text-[#F5F9FC]"
+                    }`}>{f.icon}</span>
+                    <span>{f.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {outputFormat !== "text" && (
+              <p className="mt-2 text-[10px] text-[#A67C3D] leading-snug">
+                ✓ {T("format_chosen_note")}
+              </p>
+            )}
           </div>
 
           {/* Model adapter row */}
@@ -623,6 +665,90 @@ export default function Home() {
             <p className="text-xs text-[#4A5A6E] leading-relaxed">
               {T("acq_it_body")} <a href="/trust" className="underline text-[#143352]">{T("acq_read_proof")}</a>
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What can your AI deliver? Educational section */}
+      <section className="bg-[#F5F9FC] py-12 sm:py-14 md:py-16 lg:py-20 px-4 sm:px-6 md:px-8 border-b border-[#C4D2E0]">
+        <div className="w-full max-w-5xl xl:max-w-6xl mx-auto">
+          <div className="text-center mb-8 md:mb-10">
+            <h2
+              className="text-[#0E1A2A] font-serif text-2xl sm:text-3xl md:text-4xl leading-tight tracking-tight mb-3"
+              style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}
+            >
+              {T("format_section_title")}
+            </h2>
+            <p className="text-sm sm:text-base text-[#4A5A6E] max-w-2xl mx-auto leading-relaxed">
+              {T("format_section_subtitle")}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {OUTPUT_FORMAT_ORDER.map((fid) => {
+              const f = OUTPUT_FORMATS[fid];
+              const categoryColors: Record<string, { bg: string; text: string; border: string }> = {
+                text: { bg: "#E8EFF5", text: "#143352", border: "#C4D2E0" },
+                document: { bg: "#F0E9DE", text: "#A67C3D", border: "#E0D2BB" },
+                data: { bg: "#E0F0E5", text: "#1F6F4F", border: "#A8D5BA" },
+                visual: { bg: "#F3E5F1", text: "#8B3A6B", border: "#E0BFD5" },
+              };
+              const cat = categoryColors[f.category];
+              return (
+                <button
+                  key={fid}
+                  onClick={() => {
+                    setOutputFormat(fid);
+                    document.getElementById("input-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  className="text-start bg-white border border-[#C4D2E0] rounded-lg p-4 sm:p-5 hover:border-[#143352] hover:shadow-md transition-all group"
+                >
+                  <div className="flex items-start gap-3 mb-3">
+                    <div
+                      className="flex items-center justify-center w-10 h-10 rounded-md shrink-0 font-bold text-base"
+                      style={{ backgroundColor: cat.bg, color: cat.text, border: `1px solid ${cat.border}` }}
+                    >
+                      {f.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[#0E1A2A] leading-tight">{f.label}</p>
+                      <p className="text-[10px] uppercase tracking-wider text-[#8FA6BC] mt-0.5">
+                        {f.category}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2.5 text-xs">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider font-semibold text-[#4A5A6E] mb-0.5">
+                        {T("format_what_you_get")}
+                      </p>
+                      <p className="text-[#0E1A2A] leading-snug">{f.valueShort}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider font-semibold text-[#4A5A6E] mb-0.5">
+                        {T("format_ideal_for")}
+                      </p>
+                      <p className="text-[#0E1A2A] leading-snug">{f.audience}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider font-semibold text-[#4A5A6E] mb-0.5">
+                        {T("format_how_to_download")}
+                      </p>
+                      <p className="text-[#0E1A2A] leading-snug">{f.downloadTruth}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-3 border-t border-[#E8EFF5]">
+                    <span className="text-[10px] text-[#8FA6BC] group-hover:text-[#143352] transition-colors">
+                      → {T("format_section_cta")}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
