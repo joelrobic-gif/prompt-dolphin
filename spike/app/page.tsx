@@ -2,7 +2,6 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
 import {
-  engineer,
   QUALITY_AXIS,
   QUALITY_AXIS_ORDER,
   ADAPTER_ORDER,
@@ -13,8 +12,11 @@ import {
   type AdapterId,
   type QualityId,
   type OutputFormatId,
-  type EngineerResult,
 } from "@/lib/engine-v2";
+import {
+  engineerV3 as engineer,
+  type EngineerV3Result as EngineerResult,
+} from "@/lib/engine-v3";
 import {
   LANGUAGES,
   LANGUAGE_ORDER,
@@ -53,9 +55,11 @@ function buildFeedbackPayload(args: {
   lines.push("## Session context (no PII — config only)");
   if (args.result) {
     lines.push(`- Detected archetype: ${args.result.archetype}`);
-    if (args.result.classification.runnerUp) {
-      lines.push(`- Runner-up: ${args.result.classification.runnerUp}`);
+    if (args.result.classification.secondary) {
+      lines.push(`- Composite secondary: ${args.result.classification.secondary}`);
     }
+    lines.push(`- Classifier confidence: ${args.result.classification.confidence}`);
+    lines.push(`- Self-eval: ${args.result.selfEval.scaled.toFixed(1)}/12 (total ${args.result.selfEval.total}/120)`);
     lines.push(`- Quality preset: ${args.result.quality}`);
     lines.push(`- Adapter (model): ${args.result.adapter}`);
     lines.push(`- Pre-flight: ${args.result.preflight.passed ? "passed" : "FAILED"}`);
@@ -561,11 +565,24 @@ export default function Home() {
                 <span className="text-xs px-2 py-0.5 rounded bg-[#E8EFF5] text-[#A67C3D] font-semibold border border-[#C4D2E0]">
                   {ARCHETYPES[result.archetype].label}
                 </span>
-                {result.classification.runnerUp && (
+                {result.classification.secondary && (
                   <span className="text-[10px] text-[#8FA6BC]">
-                    ({T("runner_up")}: {ARCHETYPES[result.classification.runnerUp].label})
+                    (+ {ARCHETYPES[result.classification.secondary].label})
                   </span>
                 )}
+                <span className="text-xs text-[#4A5A6E] ms-2">·</span>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded font-semibold border ${
+                    result.selfEval.scaled >= 11
+                      ? "bg-[#E0F0E5] text-[#1F6F4F] border-[#A8D5BA]"
+                      : result.selfEval.scaled >= 9
+                      ? "bg-[#F0E9DE] text-[#A67C3D] border-[#E0D2BB]"
+                      : "bg-[#FBEAE8] text-[#8B3A2E] border-[#E4B5AE]"
+                  }`}
+                  title={result.selfEval.dimensions.map((d) => `${d.label}: ${d.score}/12 — ${d.why}`).join("\n")}
+                >
+                  Self-eval {result.selfEval.scaled.toFixed(1)}/12
+                </span>
                 <span className="text-xs text-[#4A5A6E] ms-2">·</span>
                 <span className="text-xs text-[#4A5A6E]">{T("depth_label")}</span>
                 <span className="text-xs px-2 py-0.5 rounded bg-[#E8EFF5] text-[#143352] font-semibold border border-[#C4D2E0]">
