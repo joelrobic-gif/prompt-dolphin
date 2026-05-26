@@ -33,6 +33,7 @@ import {
   type SegmentKind,
 } from "@/lib/explain";
 import { LEXICON } from "@/lib/lexicon";
+import { pickHeroImage, defaultHeroImage } from "@/lib/hero-images";
 
 // Build feedback payload — privacy-first.
 function buildFeedbackPayload(args: {
@@ -95,6 +96,10 @@ export default function Home() {
   const [langOpen, setLangOpen] = useState(false);
   // Educational format section toggle
   const [formatsOpen, setFormatsOpen] = useState(false);
+  // Hero image — random per visit (Unsplash CC0 + local fallback)
+  const [heroSrc, setHeroSrc] = useState<string>(defaultHeroImage());
+  const [heroAlt, setHeroAlt] = useState<string>('A dolphin curving through deep ocean water');
+  const [heroIsRemote, setHeroIsRemote] = useState<boolean>(false);
   // Engineered prompt explain
   const [activeSegmentIdx, setActiveSegmentIdx] = useState<number | null>(null);
   const [showLong, setShowLong] = useState(false);
@@ -120,6 +125,14 @@ export default function Home() {
   useEffect(() => {
     const detected = detectInitialLang();
     setLang(detected);
+  }, []);
+
+  // Pick a fresh hero image on every mount. SSR uses the default; client picks random post-hydrate.
+  useEffect(() => {
+    const pick = pickHeroImage();
+    setHeroSrc(pick.src);
+    setHeroAlt(pick.alt);
+    setHeroIsRemote(pick.isRemote);
   }, []);
 
   // Persist lang + update <html> dir/lang
@@ -357,13 +370,27 @@ export default function Home() {
         className="relative w-full h-[40vh] min-h-[280px] sm:min-h-[320px] md:min-h-[360px] max-h-[480px] overflow-hidden"
       >
         <Image
-          src="/brand/dolphin-hero.jpg"
-          alt="A dolphin curving through deep ocean water"
+          src={heroSrc}
+          alt={heroAlt}
           fill priority sizes="100vw"
           className="object-cover transition-none"
           quality={85}
+          unoptimized={heroIsRemote}
+          onError={() => {
+            // If a remote (Unsplash) image fails to load, fall back to local
+            if (heroSrc !== defaultHeroImage()) {
+              setHeroSrc(defaultHeroImage());
+              setHeroIsRemote(false);
+              setHeroAlt('A dolphin curving through deep ocean water');
+            }
+          }}
           style={{ transform: "translate3d(0,0,0) scale(1)" }}
         />
+        {heroIsRemote && (
+          <span className="absolute bottom-2 end-3 z-10 text-[9px] text-[#F5F9FC]/50 font-mono tracking-wider pointer-events-none select-none">
+            unsplash · CC0
+          </span>
+        )}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F35]/90 via-[#0A1F35]/60 to-[#0A1F35]/20 pointer-events-none" />
 
         {/* Language picker — top right corner */}
