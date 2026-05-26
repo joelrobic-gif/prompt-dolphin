@@ -20,7 +20,10 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "no-referrer" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+  // microphone=(self) allows the Web Speech API mic on this origin only.
+  // Voice transcription runs via the browser's built-in speech service —
+  // page does not transmit audio itself; engineered prompt never leaves the browser.
+  { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=(), payment=()" },
 ];
 
 const nextConfig: NextConfig = {

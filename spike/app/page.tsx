@@ -101,7 +101,10 @@ export default function Home() {
   // Voice input
   const [isListening, setIsListening] = useState(false);
   const [voiceSupported, setVoiceSupported] = useState(false);
+  const [voiceError, setVoiceError] = useState<string>("");
+  const [voiceInterim, setVoiceInterim] = useState<string>("");
   const recognitionRef = useRef<unknown>(null);
+  const taskBeforeMicRef = useRef<string>("");
   // Feedback widget
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
@@ -176,65 +179,125 @@ export default function Home() {
 
   const toggleMic = useCallback(() => {
     if (typeof window === "undefined") return;
-    type SRConstructor = new () => {
+    type SRResult = { isFinal: boolean; readonly length: number; 0: { transcript: string } };
+    type SRResultList = { readonly length: number; [i: number]: SRResult };
+    type SREvent = { resultIndex: number; results: SRResultList };
+    type SRInstance = {
       lang: string;
       interimResults: boolean;
       continuous: boolean;
-      onresult: (e: { results: { isFinal: boolean; 0: { transcript: string } }[][] | ArrayLike<{ isFinal: boolean; 0: { transcript: string } }> }) => void;
-      onerror: (e: { error: string }) => void;
+      maxAlternatives: number;
+      onresult: (e: SREvent) => void;
+      onerror: (e: { error: string; message?: string }) => void;
       onend: () => void;
+      onstart: () => void;
+      onspeechstart?: () => void;
+      onspeechend?: () => void;
+      onnomatch?: () => void;
       start: () => void;
       stop: () => void;
+      abort: () => void;
     };
+    type SRConstructor = new () => SRInstance;
     const SR = ((window as unknown as { SpeechRecognition?: SRConstructor }).SpeechRecognition
       || (window as unknown as { webkitSpeechRecognition?: SRConstructor }).webkitSpeechRecognition) as SRConstructor | undefined;
-    if (!SR) return;
+    if (!SR) {
+      setVoiceError("Voice input not supported in this browser. Try Chrome, Edge, or Safari (latest).");
+      return;
+    }
 
+    // If already listening, stop and finalize
     if (isListening && recognitionRef.current) {
-      (recognitionRef.current as { stop: () => void }).stop();
+      try { (recognitionRef.current as SRInstance).stop(); } catch { /* ignore */ }
       setIsListening(false);
       return;
     }
 
-    const recognition = new SR();
-    // Map our LangId to BCP-47 best-effort
+    // BCP-47 with regional fallbacks. The Web Speech API on Chrome uses Google's server-side
+    // recognizer which accepts variants per language. Picking widely-supported codes.
     const bcp47Map: Record<string, string> = {
-      en: "en-US", fr: "fr-FR", es: "es-ES", de: "de-DE", it: "it-IT",
-      pt: "pt-PT", nl: "nl-NL", ja: "ja-JP", "zh-CN": "zh-CN", "zh-TW": "zh-TW",
-      ko: "ko-KR", ar: "ar-SA", ru: "ru-RU", pl: "pl-PL",
+      en: "en-US",
+      fr: "fr-FR",
+      es: "es-ES",
+      de: "de-DE",
+      it: "it-IT",
+      pt: "pt-BR",      // Brazilian Portuguese has stronger Web Speech support than pt-PT in practice
+      nl: "nl-NL",
+      ja: "ja-JP",
+      "zh-CN": "cmn-Hans-CN",  // Standard Mandarin, simplified, China
+      "zh-TW": "cmn-Hant-TW",  // Standard Mandarin, traditional, Taiwan
+      ko: "ko-KR",
+      ar: "ar-SA",
+      ru: "ru-RU",
+      pl: "pl-PL",
     };
+
+    const recognition = new SR();
     recognition.lang = bcp47Map[lang] || "en-US";
     recognition.interimResults = true;
-    recognition.continuous = false;
+    recognition.continuous = true;  // keep listening across pauses; user clicks to stop
+    recognition.maxAlternatives = 1;
 
-    let interim = "";
+    // Anchor: capture the task content BEFORE mic starts. Final transcripts append to anchor;
+    // interim transcripts render after anchor but get replaced on each new chunk.
+    taskBeforeMicRef.current = task;
+    let committed = task;  // tracks anchor + already-finalized speech
+    setVoiceError("");
+    setVoiceInterim("");
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
     recognition.onresult = (e) => {
-      interim = "";
-      const resultsArr = Array.from(e.results as ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>);
-      for (let i = 0; i < resultsArr.length; i += 1) {
-        const r = resultsArr[i];
-        const piece = r[0].transcript;
-        if (r.isFinal) {
-          setTask((prev) => (prev.trim() ? prev + " " + piece : piece));
+      let interim = "";
+      // Only walk results from e.resultIndex onward. Prior indices have already been processed.
+      for (let i = e.resultIndex; i < e.results.length; i += 1) {
+        const piece = e.results[i][0].transcript;
+        if (e.results[i].isFinal) {
+          committed = committed.trim()
+            ? committed.trim() + " " + piece.trim()
+            : piece.trim();
         } else {
           interim += piece;
         }
       }
-      if (interim) {
-        // show interim by appending temporarily, replace on next final
-        setTask((prev) => prev); // no-op, interim shown via DOM if desired
-      }
+      // Push committed (anchor + finals) to task. Interim shown separately.
+      setTask(committed);
+      setVoiceInterim(interim);
     };
-    recognition.onerror = () => { setIsListening(false); };
-    recognition.onend = () => { setIsListening(false); };
+
+    recognition.onerror = (e) => {
+      const errMap: Record<string, string> = {
+        "not-allowed": "Microphone permission denied. Click the mic icon in your browser's address bar to allow.",
+        "service-not-allowed": "Browser blocked the speech service. Check your site settings.",
+        "no-speech": "No speech detected — try again, speak closer to the mic.",
+        "audio-capture": "No microphone found. Check your audio input device.",
+        "network": "Network error reaching the speech service. Try again.",
+        "aborted": "",  // expected on stop()
+        "language-not-supported": `Language ${recognition.lang} not supported by your browser's speech service. Try a different UI language or use Chrome.`,
+      };
+      const msg = errMap[e.error] !== undefined ? errMap[e.error] : `Speech error: ${e.error}`;
+      if (msg) setVoiceError(msg);
+      setIsListening(false);
+      setVoiceInterim("");
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      setVoiceInterim("");
+    };
+
     recognitionRef.current = recognition;
     try {
       recognition.start();
+      // onstart will flip isListening to true; set optimistically too for snappy UI
       setIsListening(true);
-    } catch {
+    } catch (err) {
       setIsListening(false);
+      setVoiceError(`Could not start mic: ${err instanceof Error ? err.message : "unknown error"}`);
     }
-  }, [isListening, lang]);
+  }, [isListening, lang, task]);
 
   useEffect(() => {
     if (!result) return;
@@ -428,11 +491,19 @@ export default function Home() {
               </button>
             )}
             {isListening && (
-              <p className={`absolute -bottom-5 ${dir === 'rtl' ? 'right-2' : 'left-2'} text-[10px] text-[#8B3A2E] font-semibold animate-pulse`}>
-                ● listening… ({LANGUAGES[lang].native})
+              <p className={`absolute -bottom-5 ${dir === 'rtl' ? 'right-2' : 'left-2'} text-[10px] text-[#8B3A2E] font-semibold flex items-center gap-1`}>
+                <span className="inline-block w-2 h-2 rounded-full bg-[#8B3A2E] animate-pulse" aria-hidden="true" />
+                listening · {LANGUAGES[lang].native}
+                {voiceInterim && <span className="ms-1 text-[#4A5A6E] font-normal italic">&ldquo;{voiceInterim.slice(0, 60)}{voiceInterim.length > 60 ? "…" : ""}&rdquo;</span>}
               </p>
             )}
           </div>
+          {voiceError && (
+            <div className="mt-2 text-xs text-[#8B3A2E] bg-[#FBEAE8] border border-[#E4B5AE] rounded-md px-3 py-2 flex items-start justify-between gap-2">
+              <span className="flex-1">⚠ {voiceError}</span>
+              <button onClick={() => setVoiceError("")} className="text-[#8B3A2E] hover:text-[#0E1A2A] shrink-0" aria-label="Dismiss">×</button>
+            </div>
+          )}
 
           {/* Quality Axis — PRIMARY CONTROL */}
           <div className="mt-5">
