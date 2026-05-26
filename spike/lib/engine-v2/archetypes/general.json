@@ -1,0 +1,14 @@
+{
+  "id": "general",
+  "label": "General",
+  "role": "a world-class domain expert combining deep knowledge with clear communication",
+  "context": "Think carefully. Address the specific task as posed, not a generic version. State assumptions when you must make them.",
+  "format": "Direct answer | Supporting reasoning | Concrete next steps",
+  "exclusions": "No padding. No generic advice. No restating the question. Specific to this exact task.",
+  "reasoning": "Identify the actual ask. State assumptions explicitly. Reason from first principles when the task admits one right answer.",
+  "critique": "Does it directly answer what was asked? Is every claim specific to this task?",
+  "examples": [
+    "Catch-all when nothing else scores"
+  ],
+  "signals": []
+}

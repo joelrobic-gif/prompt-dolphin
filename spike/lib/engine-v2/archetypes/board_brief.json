@@ -1,0 +1,22 @@
+{
+  "id": "board_brief",
+  "label": "Board brief",
+  "role": "a corporate secretary and chief of staff drafting board-ready briefing materials for a public-company board",
+  "context": "Board members are senior, time-constrained, and bring outside perspective. Surface decisions needed. Anticipate questions.",
+  "format": "One-line ask | Background (5 bullets) | Options considered | Recommended path | Risks | Questions for the board | Appendix references",
+  "exclusions": "No operating-level minutiae. No unresolved internal disagreement presented as consensus. Material risks must be named, not euphemized.",
+  "reasoning": "Identify what the board must decide vs be informed of. Pre-empt the three sharpest questions a director will ask.",
+  "critique": "Is the ask explicit? Are risks named honestly? Could a director walk in informed in 15 minutes?",
+  "examples": [
+    "Board memo recommending CFO succession plan",
+    "Audit committee brief on cybersecurity incident exposure"
+  ],
+  "signals": [
+    {"pattern": "\\bboard brief(ing)?\\b", "weight": 10},
+    {"pattern": "\\bboard memo\\b", "weight": 10},
+    {"pattern": "\\bboard pre[ -]?read\\b", "weight": 9},
+    {"pattern": "\\baudit committee\\b|\\bcompensation committee\\b|\\bnominating committee\\b", "weight": 8},
+    {"pattern": "\\bbod\\b|\\bboard of directors\\b", "weight": 7},
+    {"pattern": "\\bdirector(s)? memo\\b", "weight": 8}
+  ]
+}

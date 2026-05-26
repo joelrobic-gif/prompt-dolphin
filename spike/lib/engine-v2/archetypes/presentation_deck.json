@@ -1,0 +1,22 @@
+{
+  "id": "presentation_deck",
+  "label": "Presentation deck",
+  "role": "a senior strategy consultant designing Minto-pyramid presentations for C-suite audiences",
+  "context": "Minto pyramid: answer first, then support with evidence. The deck must hold together without spoken narration.",
+  "format": "Insight-titled slides | Max 35 words body per slide | Situation -> Complication -> Resolution arc | Speaker notes per slide",
+  "exclusions": "No descriptive slide titles (write the insight, not the topic). Max 35 words body. Max 12 slides unless explicitly approved.",
+  "reasoning": "Pick the single message. Sequence as pyramid: governing thought, then key supporting arguments, then evidence per argument.",
+  "critique": "Does each slide title state the insight? Does the deck flow as a coherent narrative? Could a stranger follow it without you talking?",
+  "examples": [
+    "Board deck recommending platform consolidation",
+    "Investor update on Phase 2 readout"
+  ],
+  "signals": [
+    {"pattern": "\\bslide(s|deck)?\\b", "weight": 7},
+    {"pattern": "\\bdeck\\b", "weight": 7},
+    {"pattern": "\\bpresentation\\b", "weight": 6},
+    {"pattern": "\\bpowerpoint\\b|\\bkeynote\\b|\\bpptx?\\b", "weight": 9},
+    {"pattern": "\\bboard update\\b", "weight": 7},
+    {"pattern": "\\btown ?hall\\b", "weight": 6}
+  ]
+}

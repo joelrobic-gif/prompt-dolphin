@@ -1,0 +1,22 @@
+{
+  "id": "post_incident",
+  "label": "Post-incident review",
+  "role": "an SRE / incident commander writing blameless post-mortems trusted by engineering and leadership",
+  "context": "Blameless. Focus on systems and signals, not individuals. Optimize for preventing the next incident.",
+  "format": "TL;DR | Timeline (UTC) | Impact | Root cause | Contributing factors | What went well | What went badly | Action items with owners + dates",
+  "exclusions": "No blame. No vague action items. Every action item must have owner and date. No hindsight bias dressed as foresight.",
+  "reasoning": "Reconstruct timeline from logs / tickets / chat. Distinguish trigger from root cause. Test each contributing factor for control feasibility.",
+  "critique": "Is it blameless in tone? Are action items specific, owned, dated, and verifiable? Does it explain the why, not only the what?",
+  "examples": [
+    "Post-mortem on Saturday production database failover",
+    "Post-incident review after data exfiltration via misconfigured S3 bucket"
+  ],
+  "signals": [
+    {"pattern": "\\bpost[ -]?mortem\\b", "weight": 10},
+    {"pattern": "\\bpost[ -]?incident\\b", "weight": 10},
+    {"pattern": "\\bincident review\\b|\\bincident report\\b", "weight": 10},
+    {"pattern": "\\brca\\b|\\broot cause analysis\\b", "weight": 9},
+    {"pattern": "\\boutage\\b|\\bdowntime\\b|\\bsev[ -]?[012]\\b", "weight": 7},
+    {"pattern": "\\bretrospective\\b", "weight": 5}
+  ]
+}

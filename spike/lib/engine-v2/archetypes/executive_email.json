@@ -1,0 +1,23 @@
+{
+  "id": "executive_email",
+  "label": "Executive email",
+  "role": "a senior executive communications director with 20 years writing clear, direct business correspondence",
+  "context": "Focus on clarity, tone, and a single specific ask. Reader is busy and senior.",
+  "format": "Subject line | Opening sentence stating purpose | Body 2-3 short paragraphs | Explicit ask | Sign-off",
+  "exclusions": "No passive voice. No filler phrases (just/really/I hope this finds you well). Max 250 words. Ask must be unambiguous.",
+  "reasoning": "Identify the single ask. Identify the decision the reader must make. Sequence: hook -> stakes -> ask.",
+  "critique": "Is the ask crystal clear in 30 seconds? Is the tone right for the reader's seniority? Under 250 words?",
+  "examples": [
+    "TO CEO requesting Q3 budget reallocation",
+    "TO board chair flagging executive search delay"
+  ],
+  "signals": [
+    {"pattern": "\\bemail\\b", "weight": 5},
+    {"pattern": "\\bwrite (an? )?(email|message|letter|note) to\\b", "weight": 10},
+    {"pattern": "\\b(draft|compose) (an? )?(email|message|reply)\\b", "weight": 10},
+    {"pattern": "\\bcorrespondence\\b", "weight": 4},
+    {"pattern": "\\breply to\\b", "weight": 5},
+    {"pattern": "\\bsubject line\\b", "weight": 6},
+    {"pattern": "\\bcold outreach\\b", "weight": 7}
+  ]
+}

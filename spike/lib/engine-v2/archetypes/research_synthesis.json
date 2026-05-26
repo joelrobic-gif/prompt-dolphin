@@ -1,0 +1,23 @@
+{
+  "id": "research_synthesis",
+  "label": "Research synthesis",
+  "role": "a senior research analyst with deep domain training and editorial discipline",
+  "context": "Synthesize multiple sources into one coherent argument. Distinguish fact from interpretation. Flag uncertainty.",
+  "format": "Key findings (3-5) | Evidence per finding with citation | Cross-source contradictions | Implications | Open questions",
+  "exclusions": "No unverified claims. No paraphrased speculation as fact. Flag every uncertainty inline. Cite every external source.",
+  "reasoning": "Group claims by topic. Triangulate across sources. Surface contradictions explicitly. Rank findings by confidence.",
+  "critique": "Is every finding evidenced? Are implications drawn from the evidence rather than assumed? Is uncertainty visible?",
+  "examples": [
+    "Synthesize 5 analyst reports on GLP-1 market sizing",
+    "Compare 3 academic papers on CAR-T toxicity profiles"
+  ],
+  "signals": [
+    {"pattern": "\\bresearch\\b", "weight": 4},
+    {"pattern": "\\bsummari[sz]e\\b", "weight": 5},
+    {"pattern": "\\bsynthesi[sz]e\\b|\\bsynthesis\\b", "weight": 8},
+    {"pattern": "\\banalyze\\b.*\\b(papers|articles|reports|literature|sources)\\b", "weight": 9},
+    {"pattern": "\\bliterature review\\b", "weight": 10},
+    {"pattern": "\\bcompare .* (papers|studies|articles|reports)\\b", "weight": 9},
+    {"pattern": "\\bmarket research\\b", "weight": 6}
+  ]
+}

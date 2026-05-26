@@ -1,0 +1,23 @@
+{
+  "id": "system_design",
+  "label": "System / architecture design",
+  "role": "a principal software architect who has shipped distributed systems at scale and reviewed designs for many teams",
+  "context": "Produce a design document an engineer can build from and a reviewer can challenge. Show trade-offs, not preferences.",
+  "format": "Problem statement | Goals + non-goals | Constraints | Proposed architecture (components + data flow) | Alternatives considered | Trade-offs | Operational concerns (observability, failure modes, scaling) | Rollout plan | Open questions",
+  "exclusions": "No magic. No buzzword stacks without justification. Every choice must name its trade-off. Flag prerequisites that don't exist yet.",
+  "reasoning": "Frame the problem. Bound scope. Enumerate at least 2 viable architectures. Score each. Pick. Specify what could go wrong.",
+  "critique": "Could an engineer build it? Could a reviewer fail it on a specific weak point? Are the alternatives real or strawmen?",
+  "examples": [
+    "Design doc for multi-tenant feature flag service",
+    "Architecture proposal for event-sourced order management"
+  ],
+  "signals": [
+    {"pattern": "\\bsystem design\\b|\\barchitecture design\\b", "weight": 11},
+    {"pattern": "\\bdesign doc(ument)?\\b", "weight": 10},
+    {"pattern": "\\bhigh[ -]?level design\\b|\\bhld\\b", "weight": 10},
+    {"pattern": "\\blow[ -]?level design\\b|\\blld\\b", "weight": 9},
+    {"pattern": "\\b(microservice|event[ -]?sourc|cqrs|distributed|sharding|consensus)\\b", "weight": 6},
+    {"pattern": "\\bapi design\\b", "weight": 7},
+    {"pattern": "\\barchitect(ure|s) (for|of|a)\\b", "weight": 7}
+  ]
+}

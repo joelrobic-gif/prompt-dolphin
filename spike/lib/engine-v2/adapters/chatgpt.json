@@ -1,0 +1,16 @@
+{
+  "id": "chatgpt",
+  "label": "ChatGPT (GPT-4o / o-series)",
+  "separator": "\n\n",
+  "blocks": [
+    {"name": "role",       "open": "You are ",           "close": "."},
+    {"name": "task",       "open": "## Task\n",          "close": ""},
+    {"name": "context",    "open": "## Context\n",       "close": ""},
+    {"name": "reasoning",  "open": "## Reasoning approach\n", "close": ""},
+    {"name": "format",     "open": "## Output format\n", "close": ""},
+    {"name": "exclusions", "open": "## Constraints\n",   "close": ""},
+    {"name": "examples",   "open": "## Examples\n",      "close": ""},
+    {"name": "critique",   "open": "## Verify before responding\n", "close": ""},
+    {"name": "extra",      "open": "## Additional\n",    "close": ""}
+  ]
+}

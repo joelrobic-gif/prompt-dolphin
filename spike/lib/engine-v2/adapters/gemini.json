@@ -1,0 +1,16 @@
+{
+  "id": "gemini",
+  "label": "Gemini",
+  "separator": "\n\n",
+  "blocks": [
+    {"name": "role",       "open": "You are ",       "close": "."},
+    {"name": "task",       "open": "Task:\n",        "close": ""},
+    {"name": "context",    "open": "",                "close": ""},
+    {"name": "reasoning",  "open": "Reasoning approach:\n", "close": ""},
+    {"name": "format",     "open": "Structure your answer as:\n", "close": ""},
+    {"name": "exclusions", "open": "Ensure you:\n",   "close": ""},
+    {"name": "examples",   "open": "Examples:\n",     "close": ""},
+    {"name": "critique",   "open": "Verify before answering: ", "close": ""},
+    {"name": "extra",      "open": "",                "close": ""}
+  ]
+}

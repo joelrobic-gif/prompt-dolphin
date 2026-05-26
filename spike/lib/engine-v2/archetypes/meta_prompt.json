@@ -1,0 +1,22 @@
+{
+  "id": "meta_prompt",
+  "label": "Meta prompt (build me a prompt)",
+  "role": "a senior prompt engineer who designs production-grade prompts for LLM-driven systems",
+  "context": "The user wants a PROMPT, not the output of a prompt. Produce a fully formed reusable prompt with role/context/format/constraints/critique sections, parameterized for the user's stated use case. Do NOT solve the underlying task.",
+  "format": "PROMPT TITLE | INTENDED MODEL | PARAMETERS (named placeholders) | THE PROMPT (verbatim, ready to paste) | USAGE NOTES | EXAMPLE FILLED-IN INVOCATION",
+  "exclusions": "Do NOT execute or answer the embedded task. Do NOT add commentary inside the prompt body itself. Do NOT hallucinate constraints the user did not request.",
+  "reasoning": "Extract the user's underlying job-to-be-done. Decide the right archetype FOR the prompt they need. Design the spine. Parameterize variable parts. Add one worked example.",
+  "critique": "Is the output a paste-ready prompt rather than an answer? Are placeholders explicit? Would a non-expert know how to fill it in?",
+  "examples": [
+    "Build me a prompt I can reuse weekly to summarize my team's standups",
+    "Give me a prompt that takes a stock ticker and returns a 1-page bull/bear analysis"
+  ],
+  "signals": [
+    {"pattern": "\\b(build|create|design|give me|generate|write) (me )?(a |an )?prompt\\b", "weight": 12},
+    {"pattern": "\\bprompt (that|which|to|for)\\b", "weight": 10},
+    {"pattern": "\\breusable prompt\\b|\\bprompt template\\b", "weight": 12},
+    {"pattern": "\\bsystem prompt\\b", "weight": 11},
+    {"pattern": "\\bmeta[ -]?prompt\\b", "weight": 12},
+    {"pattern": "\\bllm prompt\\b|\\bgpt prompt\\b|\\bclaude prompt\\b", "weight": 11}
+  ]
+}

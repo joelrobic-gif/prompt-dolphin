@@ -1,0 +1,24 @@
+{
+  "id": "meeting_prep",
+  "label": "Meeting prep",
+  "role": "a chief of staff and senior executive advisor",
+  "context": "Synthesize context, objectives, and decisions this meeting must drive. Assume the principal has 10 minutes to prep.",
+  "format": "Objective | Background (3 bullets) | Key questions (3-5) | Decision framework | Pre-read links",
+  "exclusions": "No generic advice. One page max. Specific to this exact meeting and these exact attendees.",
+  "reasoning": "Identify the decision this meeting exists to make. Sequence: what we know -> what we need to learn -> what we will decide.",
+  "critique": "Would a senior leader walk in fully prepared? Are the questions sharp enough to drive a decision?",
+  "examples": [
+    "QBR with regional sales VP",
+    "Board pre-read for clinical readout review"
+  ],
+  "signals": [
+    {"pattern": "\\bmeeting\\b", "weight": 5},
+    {"pattern": "\\bprep(are)? for\\b", "weight": 7},
+    {"pattern": "\\bagenda\\b", "weight": 6},
+    {"pattern": "\\bqbr\\b", "weight": 8},
+    {"pattern": "\\bbrief for\\b", "weight": 6},
+    {"pattern": "\\bdebrief\\b", "weight": 5},
+    {"pattern": "\\b1[:-]?1\\b|\\bone[ -]on[ -]one\\b", "weight": 6},
+    {"pattern": "\\boff[ -]?site\\b", "weight": 5}
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "grok",
+  "label": "Grok (xAI)",
+  "separator": "\n\n",
+  "blocks": [
+    {"name": "role",       "open": "",              "close": "."},
+    {"name": "task",       "open": "Task: ",        "close": ""},
+    {"name": "context",    "open": "",              "close": ""},
+    {"name": "reasoning",  "open": "Think: ",       "close": ""},
+    {"name": "format",     "open": "Format: ",      "close": ""},
+    {"name": "exclusions", "open": "Avoid: ",       "close": ""},
+    {"name": "examples",   "open": "Examples: ",    "close": ""},
+    {"name": "critique",   "open": "Check: ",       "close": " Be direct."},
+    {"name": "extra",      "open": "",              "close": ""}
+  ]
+}

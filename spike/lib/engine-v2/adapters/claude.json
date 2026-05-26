@@ -1,0 +1,16 @@
+{
+  "id": "claude",
+  "label": "Claude",
+  "separator": "\n\n",
+  "blocks": [
+    {"name": "role",       "open": "<role>\n",          "close": "\n</role>"},
+    {"name": "context",    "open": "<context>\n",       "close": "\n</context>"},
+    {"name": "reasoning",  "open": "<thinking_approach>\n", "close": "\n</thinking_approach>"},
+    {"name": "format",     "open": "<format>\n",        "close": "\n</format>"},
+    {"name": "exclusions", "open": "<do_not>\n",        "close": "\n</do_not>"},
+    {"name": "examples",   "open": "<examples>\n",      "close": "\n</examples>"},
+    {"name": "critique",   "open": "<critique>\n",      "close": "\n</critique>"},
+    {"name": "extra",      "open": "<extra>\n",         "close": "\n</extra>"},
+    {"name": "task",       "open": "### New Input:\n",  "close": ""}
+  ]
+}
