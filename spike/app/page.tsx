@@ -82,6 +82,8 @@ export default function Home() {
   // Language
   const [lang, setLang] = useState<LangId>("en");
   const [langOpen, setLangOpen] = useState(false);
+  // Educational format section toggle
+  const [formatsOpen, setFormatsOpen] = useState(false);
   // Feedback widget
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
@@ -349,40 +351,43 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Output format row */}
-          <div className="mt-4">
-            <p className="text-xs text-[#4A5A6E] mb-2 font-semibold uppercase tracking-wider">
+          {/* Output format — compact dropdown */}
+          <div className="mt-4 flex items-center gap-3 flex-wrap">
+            <label htmlFor="format-select" className="text-xs text-[#4A5A6E] font-semibold uppercase tracking-wider shrink-0">
               {T("format_heading")}
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {OUTPUT_FORMAT_ORDER.map((fid) => {
-                const f = OUTPUT_FORMATS[fid];
-                const active = outputFormat === fid;
-                return (
-                  <button
-                    key={fid}
-                    onClick={() => setOutputFormat(fid)}
-                    title={`${f.valueShort}\n\n${T("format_ideal_for")}: ${f.audience}`}
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-semibold transition-all ${
-                      active
-                        ? "border-[#143352] bg-[#143352] text-white"
-                        : "border-[#C4D2E0] bg-white text-[#0E1A2A] hover:border-[#143352] hover:bg-[#E8EFF5]"
-                    }`}
-                  >
-                    <span className={`inline-flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold ${
-                      active ? "bg-[#A67C3D] text-white" : "bg-[#143352] text-[#F5F9FC]"
-                    }`}>{f.icon}</span>
-                    <span>{f.label}</span>
-                  </button>
-                );
-              })}
+            </label>
+            <div className="flex items-center gap-2 flex-1 min-w-[180px]">
+              <select
+                id="format-select"
+                value={outputFormat}
+                onChange={(e) => setOutputFormat(e.target.value as OutputFormatId)}
+                className="flex-1 border border-[#C4D2E0] rounded-md px-2.5 py-1.5 text-sm text-[#0E1A2A] bg-white focus:outline-none focus:border-[#143352] cursor-pointer"
+              >
+                {OUTPUT_FORMAT_ORDER.map((fid) => {
+                  const f = OUTPUT_FORMATS[fid];
+                  return <option key={fid} value={fid}>{f.icon} · {f.label}</option>;
+                })}
+              </select>
+              <a
+                href="#formats-explained"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setFormatsOpen(true);
+                  setTimeout(() => {
+                    document.getElementById("formats-explained")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }, 80);
+                }}
+                className="text-[10px] text-[#A67C3D] hover:text-[#8a6530] underline whitespace-nowrap"
+              >
+                what&apos;s this?
+              </a>
             </div>
-            {outputFormat !== "text" && (
-              <p className="mt-2 text-[10px] text-[#A67C3D] leading-snug">
-                ✓ {T("format_chosen_note")}
-              </p>
-            )}
           </div>
+          {outputFormat !== "text" && (
+            <p className="mt-1 text-[10px] text-[#A67C3D] leading-snug">
+              ✓ {T("format_chosen_note")}
+            </p>
+          )}
 
           {/* Model adapter row */}
           <div className="mt-4">
@@ -669,87 +674,84 @@ export default function Home() {
         </div>
       </section>
 
-      {/* What can your AI deliver? Educational section */}
-      <section className="bg-[#F5F9FC] py-12 sm:py-14 md:py-16 lg:py-20 px-4 sm:px-6 md:px-8 border-b border-[#C4D2E0]">
-        <div className="w-full max-w-5xl xl:max-w-6xl mx-auto">
-          <div className="text-center mb-8 md:mb-10">
-            <h2
-              className="text-[#0E1A2A] font-serif text-2xl sm:text-3xl md:text-4xl leading-tight tracking-tight mb-3"
-              style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}
+      {/* What can your AI deliver? — collapsed by default, secondary interest */}
+      <section id="formats-explained" className="bg-white py-10 sm:py-12 md:py-14 px-4 sm:px-6 md:px-8 border-b border-[#C4D2E0]">
+        <div className="w-full max-w-4xl mx-auto">
+          <button
+            onClick={() => setFormatsOpen(!formatsOpen)}
+            className="w-full flex items-center justify-between gap-4 text-start group"
+            aria-expanded={formatsOpen}
+          >
+            <div className="flex-1 min-w-0">
+              <h2
+                className="text-[#0E1A2A] font-serif text-xl sm:text-2xl md:text-3xl leading-tight tracking-tight"
+                style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}
+              >
+                {T("format_section_title")}
+              </h2>
+              {!formatsOpen && (
+                <p className="mt-2 text-xs sm:text-sm text-[#4A5A6E] leading-relaxed">
+                  {T("format_section_subtitle")}
+                </p>
+              )}
+            </div>
+            <span
+              className={`shrink-0 flex items-center justify-center w-9 h-9 rounded-full border border-[#C4D2E0] bg-[#F5F9FC] text-[#143352] text-base font-semibold transition-transform group-hover:border-[#143352] ${formatsOpen ? "rotate-45" : ""}`}
+              aria-hidden="true"
             >
-              {T("format_section_title")}
-            </h2>
-            <p className="text-sm sm:text-base text-[#4A5A6E] max-w-2xl mx-auto leading-relaxed">
-              {T("format_section_subtitle")}
+              +
+            </span>
+          </button>
+
+          {formatsOpen && (
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+              {OUTPUT_FORMAT_ORDER.map((fid) => {
+                const f = OUTPUT_FORMATS[fid];
+                const active = outputFormat === fid;
+                const categoryColors: Record<string, { bg: string; text: string }> = {
+                  text: { bg: "#E8EFF5", text: "#143352" },
+                  document: { bg: "#F0E9DE", text: "#A67C3D" },
+                  data: { bg: "#E0F0E5", text: "#1F6F4F" },
+                  visual: { bg: "#F3E5F1", text: "#8B3A6B" },
+                };
+                const cat = categoryColors[f.category];
+                return (
+                  <button
+                    key={fid}
+                    onClick={() => {
+                      setOutputFormat(fid);
+                      document.getElementById("input-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    title={`${T("format_ideal_for")}: ${f.audience}\n\n${T("format_how_to_download")}: ${f.downloadTruth}`}
+                    className={`text-start bg-white border rounded-md p-3 transition-all ${
+                      active
+                        ? "border-[#143352] shadow-sm ring-1 ring-[#143352]"
+                        : "border-[#C4D2E0] hover:border-[#143352] hover:shadow-sm"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span
+                        className="inline-flex items-center justify-center w-7 h-7 rounded text-xs font-bold shrink-0"
+                        style={{ backgroundColor: cat.bg, color: cat.text }}
+                      >
+                        {f.icon}
+                      </span>
+                      <p className="text-[11px] sm:text-xs font-semibold text-[#0E1A2A] leading-tight">{f.label}</p>
+                    </div>
+                    <p className="text-[10px] sm:text-[11px] text-[#4A5A6E] leading-snug line-clamp-3">
+                      {f.valueShort}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {formatsOpen && (
+            <p className="mt-4 text-[11px] text-[#8FA6BC] text-center">
+              {T("format_section_cta")}
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {OUTPUT_FORMAT_ORDER.map((fid) => {
-              const f = OUTPUT_FORMATS[fid];
-              const categoryColors: Record<string, { bg: string; text: string; border: string }> = {
-                text: { bg: "#E8EFF5", text: "#143352", border: "#C4D2E0" },
-                document: { bg: "#F0E9DE", text: "#A67C3D", border: "#E0D2BB" },
-                data: { bg: "#E0F0E5", text: "#1F6F4F", border: "#A8D5BA" },
-                visual: { bg: "#F3E5F1", text: "#8B3A6B", border: "#E0BFD5" },
-              };
-              const cat = categoryColors[f.category];
-              return (
-                <button
-                  key={fid}
-                  onClick={() => {
-                    setOutputFormat(fid);
-                    document.getElementById("input-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                  className="text-start bg-white border border-[#C4D2E0] rounded-lg p-4 sm:p-5 hover:border-[#143352] hover:shadow-md transition-all group"
-                >
-                  <div className="flex items-start gap-3 mb-3">
-                    <div
-                      className="flex items-center justify-center w-10 h-10 rounded-md shrink-0 font-bold text-base"
-                      style={{ backgroundColor: cat.bg, color: cat.text, border: `1px solid ${cat.border}` }}
-                    >
-                      {f.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#0E1A2A] leading-tight">{f.label}</p>
-                      <p className="text-[10px] uppercase tracking-wider text-[#8FA6BC] mt-0.5">
-                        {f.category}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2.5 text-xs">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider font-semibold text-[#4A5A6E] mb-0.5">
-                        {T("format_what_you_get")}
-                      </p>
-                      <p className="text-[#0E1A2A] leading-snug">{f.valueShort}</p>
-                    </div>
-
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider font-semibold text-[#4A5A6E] mb-0.5">
-                        {T("format_ideal_for")}
-                      </p>
-                      <p className="text-[#0E1A2A] leading-snug">{f.audience}</p>
-                    </div>
-
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider font-semibold text-[#4A5A6E] mb-0.5">
-                        {T("format_how_to_download")}
-                      </p>
-                      <p className="text-[#0E1A2A] leading-snug">{f.downloadTruth}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 pt-3 border-t border-[#E8EFF5]">
-                    <span className="text-[10px] text-[#8FA6BC] group-hover:text-[#143352] transition-colors">
-                      → {T("format_section_cta")}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+          )}
         </div>
       </section>
 
