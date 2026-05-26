@@ -458,7 +458,7 @@ export default function Home() {
                 }
               }}
               placeholder={T("input_placeholder")}
-              className={`w-full border-2 border-[#C4D2E0] rounded-md p-4 ${voiceSupported ? "pe-14" : ""} text-[#0E1A2A] text-base sm:text-sm resize-none focus:outline-none focus:border-[#143352] bg-white leading-relaxed placeholder:text-[#8FA6BC] shadow-sm`}
+              className={`w-full border-2 border-[#C4D2E0] rounded-lg p-4 ${voiceSupported ? "pe-14" : ""} text-[#0E1A2A] text-base sm:text-sm resize-none focus:outline-none focus:border-[#143352] focus:ring-2 focus:ring-[#A67C3D]/20 focus:shadow-md bg-white leading-relaxed placeholder:text-[#8FA6BC] shadow-sm transition-shadow`}
               rows={5}
               autoFocus
               dir={dir}
@@ -532,14 +532,17 @@ export default function Home() {
                     key={qid}
                     onClick={() => setQuality(qid)}
                     title={T(blurbKey)}
-                    className={`flex flex-col items-start px-3 py-2 rounded-md border text-start transition-all ${
+                    className={`pd-lift relative flex flex-col items-start px-3 py-2.5 rounded-lg border text-start ${
                       active
-                        ? "border-[#143352] bg-[#143352] text-white shadow-sm"
-                        : "border-[#C4D2E0] bg-white text-[#0E1A2A] hover:border-[#143352] hover:bg-[#E8EFF5]"
+                        ? "border-[#A67C3D] bg-gradient-to-br from-[#143352] to-[#0A1F35] text-white shadow-md ring-1 ring-[#A67C3D]/30"
+                        : "border-[#C4D2E0] bg-white text-[#0E1A2A] hover:border-[#143352] hover:bg-[#E8EFF5] hover:shadow-sm"
                     }`}
                   >
+                    {active && (
+                      <span className={`absolute top-1 ${dir === 'rtl' ? 'start-1.5' : 'end-1.5'} text-[10px] text-[#D4A85F]`} aria-hidden="true">✓</span>
+                    )}
                     <span className="text-xs font-semibold leading-tight">{T(labelKey)}</span>
-                    <span className={`text-[10px] mt-0.5 leading-snug ${active ? "text-[#A67C3D]" : "text-[#4A5A6E]"}`}>
+                    <span className={`text-[10px] mt-0.5 leading-snug ${active ? "text-[#D4A85F]" : "text-[#4A5A6E]"}`}>
                       {T(blurbKey).split(".")[0]}
                     </span>
                   </button>
@@ -599,10 +602,10 @@ export default function Home() {
                   <button
                     key={aid}
                     onClick={() => setAdapter(aid)}
-                    className={`px-3 py-1.5 rounded-md border text-xs font-semibold transition-all ${
+                    className={`pd-lift px-3 py-1.5 rounded-md border text-xs font-semibold ${
                       active
-                        ? "border-[#143352] bg-[#143352] text-white"
-                        : "border-[#C4D2E0] bg-white text-[#0E1A2A] hover:border-[#143352] hover:bg-[#E8EFF5]"
+                        ? "border-[#A67C3D] bg-gradient-to-br from-[#143352] to-[#0A1F35] text-white shadow-sm ring-1 ring-[#A67C3D]/20"
+                        : "border-[#C4D2E0] bg-white text-[#0E1A2A] hover:border-[#143352] hover:bg-[#E8EFF5] hover:shadow-sm"
                     }`}
                   >
                     {a.label}
@@ -615,7 +618,7 @@ export default function Home() {
           <button
             onClick={run}
             disabled={!task.trim()}
-            className="mt-5 w-full py-3 bg-[#143352] text-white rounded-md text-sm font-semibold hover:bg-[#0A1F35] disabled:opacity-40 disabled:cursor-not-allowed transition-colors tracking-wide"
+            className="pd-lift mt-5 w-full py-3.5 bg-gradient-to-br from-[#143352] to-[#0A1F35] text-white rounded-lg text-sm font-semibold hover:from-[#1A4068] hover:to-[#143352] hover:shadow-lg hover:shadow-[#143352]/25 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:transform-none disabled:hover:shadow-none tracking-wide border border-[#0A1F35]/20"
           >
             {T("engineer_button")}
           </button>
@@ -643,7 +646,7 @@ export default function Home() {
                 )}
                 <span className="text-xs text-[#4A5A6E] ms-2">·</span>
                 <span
-                  className={`text-xs px-2 py-0.5 rounded font-semibold border ${
+                  className={`inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded font-semibold border ${
                     result.selfEval.scaled >= 11
                       ? "bg-[#E0F0E5] text-[#1F6F4F] border-[#A8D5BA]"
                       : result.selfEval.scaled >= 9
@@ -652,7 +655,12 @@ export default function Home() {
                   }`}
                   title={result.selfEval.dimensions.map((d) => `${d.label}: ${d.score}/12 — ${d.why}`).join("\n")}
                 >
-                  Self-eval {result.selfEval.scaled.toFixed(1)}/12
+                  <span>Self-eval {result.selfEval.scaled.toFixed(1)}/12</span>
+                  <span className="pd-score-bar" aria-hidden="true">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <span key={i} className={i < Math.round(result.selfEval.scaled) ? "on" : ""} />
+                    ))}
+                  </span>
                 </span>
                 <span className="text-xs text-[#4A5A6E] ms-2">·</span>
                 <span className="text-xs text-[#4A5A6E]">{T("depth_label")}</span>
@@ -675,7 +683,7 @@ export default function Home() {
               </div>
 
               <div
-                className="bg-[#0A1F35] border border-[#143352] rounded-md p-3 sm:p-5 text-xs sm:text-sm text-[#F5F9FC] font-mono whitespace-pre-wrap leading-relaxed max-h-[28rem] overflow-y-auto shadow-lg"
+                className="pd-fade-in bg-gradient-to-br from-[#0A1F35] to-[#143352] border border-[#143352] rounded-xl p-3 sm:p-5 text-xs sm:text-sm text-[#F5F9FC] font-mono whitespace-pre-wrap leading-relaxed max-h-[28rem] overflow-y-auto shadow-2xl shadow-[#0A1F35]/30 ring-1 ring-[#A67C3D]/10"
                 dir="ltr"
               >
                 {segments.length === 0 ? (
@@ -814,7 +822,7 @@ export default function Home() {
                   </button>
                   <button
                     onClick={copy}
-                    className="px-4 py-2 bg-[#A67C3D] text-white rounded-md text-xs font-semibold hover:bg-[#8a6530] transition-colors min-w-[110px]"
+                    className="pd-lift px-4 py-2 bg-gradient-to-br from-[#A67C3D] to-[#8a6530] text-white rounded-lg text-xs font-semibold hover:shadow-md hover:shadow-[#A67C3D]/30 min-w-[110px] border border-[#8a6530]/40"
                   >
                     {copied ? T("copied") : T("copy_prompt")}
                   </button>
