@@ -12,21 +12,30 @@ import {
   type QualityId,
   type EngineerResult,
 } from "@/lib/engine-v2";
+import {
+  LANGUAGES,
+  LANGUAGE_ORDER,
+  TRANSLATIONS,
+  t as translate,
+  detectInitialLang,
+  persistLang,
+  type LangId,
+} from "@/lib/i18n";
 
 // Build feedback payload — privacy-first.
-// Includes: rating, free-text feedback, archetype/quality/adapter that were selected,
-// pre-flight status. Explicitly EXCLUDES task text and user constraints.
 function buildFeedbackPayload(args: {
   rating: number;
   feedbackText: string;
   task: string;
   result: EngineerResult | null;
   userConstraints: string;
+  lang: LangId;
 }): string {
   const lines: string[] = [];
   lines.push("# PromptDolphin feedback");
   lines.push("");
   lines.push(`Rating: ${args.rating > 0 ? `${args.rating}/5` : "(not rated)"}`);
+  lines.push(`UI language: ${args.lang}`);
   lines.push("");
   lines.push("## Feedback");
   lines.push(args.feedbackText.trim() || "(no comment)");
@@ -66,20 +75,67 @@ export default function Home() {
   const [result, setResult] = useState<EngineerResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [refineOpen, setRefineOpen] = useState(false);
-  // Feedback widget — privacy-first (mailto/clipboard, no server)
+  // Language
+  const [lang, setLang] = useState<LangId>("en");
+  const [langOpen, setLangOpen] = useState(false);
+  // Feedback widget
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   const [rating, setRating] = useState<number>(0);
   const [feedbackStatus, setFeedbackStatus] = useState<"" | "copied" | "emailed">("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const heroImgRef = useRef<HTMLDivElement>(null);
 
-  // Parse user constraints (one per line)
+  const T = useMemo(() => (k: Parameters<typeof translate>[0]) => translate(k, lang), [lang]);
+  const dir = LANGUAGES[lang].dir;
+
+  // Detect initial language client-side after mount (avoids SSR hydration mismatch)
+  useEffect(() => {
+    const detected = detectInitialLang();
+    setLang(detected);
+  }, []);
+
+  // Persist lang + update <html> dir/lang
+  useEffect(() => {
+    persistLang(lang);
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = lang;
+      document.documentElement.dir = dir;
+    }
+  }, [lang, dir]);
+
+  // Parallax hero — translate + scale dolphin image with scroll
+  useEffect(() => {
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const y = window.scrollY;
+        const el = heroImgRef.current?.querySelector("img");
+        if (el) {
+          // Parallax: image moves down ~25% of scroll, scales up slightly
+          // Subtle so it feels premium not gimmicky
+          const translate = Math.min(y * 0.28, 200);
+          const scale = 1 + Math.min(y * 0.00015, 0.06);
+          (el as HTMLElement).style.transform = `translate3d(0, ${translate}px, 0) scale(${scale})`;
+          (el as HTMLElement).style.willChange = "transform";
+        }
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
   const constraintsList = useMemo(
     () => userConstraints.split("\n").map((s) => s.trim()).filter(Boolean),
     [userConstraints]
   );
 
-  // Re-engineer whenever any control changes after first generation
   useEffect(() => {
     if (!result) return;
     const r = engineer(task.trim(), {
@@ -127,26 +183,86 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F5F9FC]">
+    <main className="min-h-screen bg-[#F5F9FC]" dir={dir}>
 
-      {/* Hero */}
-      <section className="relative w-full h-[40vh] min-h-[280px] sm:min-h-[320px] md:min-h-[360px] max-h-[480px] overflow-hidden">
+      {/* Hero (parallax) */}
+      <section
+        ref={heroImgRef}
+        className="relative w-full h-[40vh] min-h-[280px] sm:min-h-[320px] md:min-h-[360px] max-h-[480px] overflow-hidden"
+      >
         <Image
           src="/brand/dolphin-hero.jpg"
           alt="A dolphin curving through deep ocean water"
           fill priority sizes="100vw"
-          className="object-cover"
+          className="object-cover transition-none"
           quality={85}
+          style={{ transform: "translate3d(0,0,0) scale(1)" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F35]/90 via-[#0A1F35]/60 to-[#0A1F35]/20" />
-        <div className="absolute inset-0 flex items-end pb-6 sm:pb-8 md:pb-10">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F35]/90 via-[#0A1F35]/60 to-[#0A1F35]/20 pointer-events-none" />
+
+        {/* Language picker — top right corner */}
+        <div className={`absolute top-3 sm:top-4 md:top-5 ${dir === 'rtl' ? 'left-3 sm:left-4 md:left-6' : 'right-3 sm:right-4 md:right-6'} z-20`}>
+          <div className="relative">
+            <button
+              onClick={() => setLangOpen(!langOpen)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#0A1F35]/70 hover:bg-[#0A1F35]/90 backdrop-blur-sm text-[#F5F9FC] rounded-md text-xs font-semibold border border-[#F5F9FC]/20 transition-all"
+              aria-label={T("lang_picker_label")}
+              aria-expanded={langOpen}
+            >
+              <span className="text-base leading-none">{LANGUAGES[lang].flag}</span>
+              <span>{LANGUAGES[lang].native}</span>
+              <span className="text-[#A67C3D] text-[10px]">▾</span>
+            </button>
+
+            {langOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setLangOpen(false)}
+                  aria-hidden="true"
+                />
+                <ul
+                  className={`absolute top-full mt-1.5 ${dir === 'rtl' ? 'left-0' : 'right-0'} z-20 bg-[#0A1F35] border border-[#F5F9FC]/20 rounded-md shadow-xl min-w-[180px] max-h-[60vh] overflow-y-auto`}
+                  role="listbox"
+                  aria-label={T("lang_picker_label")}
+                >
+                  {LANGUAGE_ORDER.map((id) => {
+                    const meta = LANGUAGES[id];
+                    const active = id === lang;
+                    return (
+                      <li key={id}>
+                        <button
+                          onClick={() => { setLang(id); setLangOpen(false); }}
+                          role="option"
+                          aria-selected={active}
+                          className={`flex items-center gap-2 w-full px-3 py-2 text-xs text-start transition-colors ${
+                            active
+                              ? "bg-[#143352] text-[#A67C3D] font-semibold"
+                              : "text-[#F5F9FC] hover:bg-[#143352]/60"
+                          }`}
+                        >
+                          <span className="text-base leading-none">{meta.flag}</span>
+                          <span className="flex-1">{meta.native}</span>
+                          {active && <span className="text-[#A67C3D]">✓</span>}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Headline */}
+        <div className="absolute inset-0 flex items-end pb-6 sm:pb-8 md:pb-10 pointer-events-none">
           <div className="w-full max-w-7xl mx-auto px-5 sm:px-6 md:px-10 lg:px-16">
             <h1
-              className="text-[#F5F9FC] font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-[1.05] tracking-tight max-w-[22ch]"
+              className="text-[#F5F9FC] font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl leading-[1.05] tracking-tight max-w-[26ch]"
               style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}
             >
-              Your AI is only as good as{" "}
-              <span className="text-[#A67C3D]">your prompt.</span>
+              {T("hero_lead")}{" "}
+              <span className="text-[#A67C3D]">{T("hero_emphasis")}</span>
             </h1>
           </div>
         </div>
@@ -158,8 +274,8 @@ export default function Home() {
 
           <div className="text-center mb-6 md:mb-8">
             <p className="text-[#4A5A6E] text-sm md:text-base">
-              Describe your task. Pick how much depth you need. PromptDolphin returns a paste-ready prompt tuned to your model.{" "}
-              <span className="font-semibold text-[#143352]">60 seconds. Free. Nothing leaves your browser.</span>
+              {T("subhead_lead")}{" "}
+              <span className="font-semibold text-[#143352]">{T("subhead_emphasis")}</span>
             </p>
           </div>
 
@@ -175,40 +291,50 @@ export default function Home() {
                   run();
                 }
               }}
-              placeholder={`Examples:
-"Write an email to my VP asking to delay the Q3 launch by two weeks"
-"Should we expand to Europe next year?"
-"Prep me for tomorrow's QBR with our biggest customer"
-"Build me a prompt I can reuse weekly to summarize my team standups"`}
+              placeholder={T("input_placeholder")}
               className="w-full border-2 border-[#C4D2E0] rounded-md p-4 text-[#0E1A2A] text-sm resize-none focus:outline-none focus:border-[#143352] bg-white leading-relaxed placeholder:text-[#8FA6BC] shadow-sm"
               rows={5}
               autoFocus
+              dir={dir}
             />
           </div>
 
           {/* Quality Axis — PRIMARY CONTROL */}
           <div className="mt-5">
             <p className="text-xs text-[#4A5A6E] mb-2 font-semibold uppercase tracking-wider">
-              How much depth do you want?
+              {T("depth_heading")}
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {QUALITY_AXIS_ORDER.map((qid) => {
-                const q = QUALITY_AXIS[qid];
                 const active = quality === qid;
+                const labelKey = (
+                  qid === "quick_verdict" ? "q_quick_label"
+                  : qid === "fast_detailed" ? "q_fast_label"
+                  : qid === "comprehensive" ? "q_comp_label"
+                  : qid === "strategic_depth" ? "q_strat_label"
+                  : "q_exh_label"
+                ) as Parameters<typeof translate>[0];
+                const blurbKey = (
+                  qid === "quick_verdict" ? "q_quick_blurb"
+                  : qid === "fast_detailed" ? "q_fast_blurb"
+                  : qid === "comprehensive" ? "q_comp_blurb"
+                  : qid === "strategic_depth" ? "q_strat_blurb"
+                  : "q_exh_blurb"
+                ) as Parameters<typeof translate>[0];
                 return (
                   <button
                     key={qid}
                     onClick={() => setQuality(qid)}
-                    title={q.blurb}
-                    className={`flex flex-col items-start px-3 py-2 rounded-md border text-left transition-all ${
+                    title={T(blurbKey)}
+                    className={`flex flex-col items-start px-3 py-2 rounded-md border text-start transition-all ${
                       active
                         ? "border-[#143352] bg-[#143352] text-white shadow-sm"
                         : "border-[#C4D2E0] bg-white text-[#0E1A2A] hover:border-[#143352] hover:bg-[#E8EFF5]"
                     }`}
                   >
-                    <span className="text-xs font-semibold leading-tight">{q.label}</span>
+                    <span className="text-xs font-semibold leading-tight">{T(labelKey)}</span>
                     <span className={`text-[10px] mt-0.5 leading-snug ${active ? "text-[#A67C3D]" : "text-[#4A5A6E]"}`}>
-                      {q.blurb.split(".")[0]}
+                      {T(blurbKey).split(".")[0]}
                     </span>
                   </button>
                 );
@@ -219,7 +345,7 @@ export default function Home() {
           {/* Model adapter row */}
           <div className="mt-4">
             <p className="text-xs text-[#4A5A6E] mb-2 font-semibold uppercase tracking-wider">
-              Which AI will you paste this into?
+              {T("adapter_heading")}
             </p>
             <div className="flex flex-wrap gap-2">
               {ADAPTER_ORDER.map((aid) => {
@@ -242,19 +368,18 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Engineer button */}
           <button
             onClick={run}
             disabled={!task.trim()}
             className="mt-5 w-full py-3 bg-[#143352] text-white rounded-md text-sm font-semibold hover:bg-[#0A1F35] disabled:opacity-40 disabled:cursor-not-allowed transition-colors tracking-wide"
           >
-            Engineer this prompt →
+            {T("engineer_button")}
           </button>
 
           <p className="mt-3 text-center text-[11px] text-[#8FA6BC]">
-            🐟 Goldfish memory — nothing you type is stored or transmitted.{" "}
+            {T("privacy_line")}{" "}
             <a href="/trust" className="underline hover:text-[#143352] transition-colors">
-              Verify
+              {T("verify_link")}
             </a>
           </p>
 
@@ -262,58 +387,63 @@ export default function Home() {
           {result && (
             <div id="output" className="mt-10">
 
-              {/* Header: archetype chip + preflight badge */}
               <div className="flex flex-wrap items-center gap-2 mb-4">
-                <span className="text-xs text-[#4A5A6E]">Detected:</span>
+                <span className="text-xs text-[#4A5A6E]">{T("detected")}</span>
                 <span className="text-xs px-2 py-0.5 rounded bg-[#E8EFF5] text-[#A67C3D] font-semibold border border-[#C4D2E0]">
                   {ARCHETYPES[result.archetype].label}
                 </span>
                 {result.classification.runnerUp && (
                   <span className="text-[10px] text-[#8FA6BC]">
-                    (runner-up: {ARCHETYPES[result.classification.runnerUp].label})
+                    ({T("runner_up")}: {ARCHETYPES[result.classification.runnerUp].label})
                   </span>
                 )}
-                <span className="text-xs text-[#4A5A6E] ml-2">·</span>
-                <span className="text-xs text-[#4A5A6E]">Depth:</span>
+                <span className="text-xs text-[#4A5A6E] ms-2">·</span>
+                <span className="text-xs text-[#4A5A6E]">{T("depth_label")}</span>
                 <span className="text-xs px-2 py-0.5 rounded bg-[#E8EFF5] text-[#143352] font-semibold border border-[#C4D2E0]">
                   {QUALITY_AXIS[result.quality].label}
                 </span>
-                <span className="text-xs text-[#4A5A6E] ml-2">·</span>
+                <span className="text-xs text-[#4A5A6E] ms-2">·</span>
                 {result.preflight.passed ? (
-                  <span className="text-xs px-2 py-0.5 rounded bg-[#E8F5EC] text-[#1F6F4F] font-semibold border border-[#A8D5BA]" title="Pre-flight self-check passed">
-                    ✓ Pre-flight
+                  <span className="text-xs px-2 py-0.5 rounded bg-[#E8F5EC] text-[#1F6F4F] font-semibold border border-[#A8D5BA]">
+                    {T("preflight_pass")}
                   </span>
                 ) : (
                   <span
                     className="text-xs px-2 py-0.5 rounded bg-[#FBEAE8] text-[#8B3A2E] font-semibold border border-[#E4B5AE]"
                     title={result.preflight.issues.map((i) => i.message).join(" / ")}
                   >
-                    ✕ Pre-flight ({result.preflight.issues.filter((i) => i.severity === "high").length})
+                    {T("preflight_fail")} ({result.preflight.issues.filter((i) => i.severity === "high").length})
                   </span>
                 )}
               </div>
 
-              {/* Engineered prompt */}
-              <div className="bg-[#0A1F35] border border-[#143352] rounded-md p-5 text-sm text-[#F5F9FC] font-mono whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto shadow-lg">
+              <div
+                className="bg-[#0A1F35] border border-[#143352] rounded-md p-5 text-sm text-[#F5F9FC] font-mono whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto shadow-lg"
+                dir="ltr"
+              >
                 {result.engineered}
               </div>
 
+              <p className="mt-2 text-[10px] text-[#8FA6BC]">
+                {T("output_lang_note")}
+              </p>
+
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
                 <p className="text-xs text-[#4A5A6E] leading-relaxed">
-                  Paste into{" "}
-                  <span className="font-semibold text-[#143352]">{ADAPTERS[adapter].label}</span>.
-                  Switch depth or model to re-render in{" "}
-                  <span className="font-semibold text-[#143352]">&lt;1 ms</span>.
+                  {T("paste_into")}{" "}
+                  <span className="font-semibold text-[#143352]">{ADAPTERS[adapter].label}</span>.{" "}
+                  {T("switch_intro")}{" "}
+                  <span className="font-semibold text-[#143352]">{T("render_speed")}</span>.
                 </p>
                 <div className="flex items-center gap-2 shrink-0">
                   <button onClick={reset} className="text-xs text-[#8FA6BC] hover:text-[#143352] px-2 py-1 transition-colors">
-                    Start over
+                    {T("start_over")}
                   </button>
                   <button
                     onClick={copy}
                     className="px-4 py-2 bg-[#A67C3D] text-white rounded-md text-xs font-semibold hover:bg-[#8a6530] transition-colors min-w-[110px]"
                   >
-                    {copied ? "✓ Copied" : "Copy prompt"}
+                    {copied ? T("copied") : T("copy_prompt")}
                   </button>
                 </div>
               </div>
@@ -325,31 +455,29 @@ export default function Home() {
                   className="flex items-center gap-2 text-xs text-[#143352] font-semibold uppercase tracking-wider hover:text-[#0A1F35] transition-colors"
                 >
                   <span className="inline-block w-4 text-center">{refineOpen ? "−" : "+"}</span>
-                  Refine
+                  {T("refine")}
                 </button>
                 {refineOpen && (
                   <div className="mt-3 p-5 bg-white border border-[#C4D2E0] rounded-md space-y-4">
                     <div>
                       <label className="block text-xs text-[#4A5A6E] font-semibold uppercase tracking-wider mb-2">
-                        Constraints to preserve verbatim (one per line)
+                        {T("constraints_label")}
                       </label>
                       <textarea
                         value={userConstraints}
                         onChange={(e) => setUserConstraints(e.target.value)}
-                        placeholder={`Use named panel of 5 experts
-Cite every source
-Output in French`}
-                        className="w-full border border-[#C4D2E0] rounded-md p-2 text-sm text-[#0E1A2A] bg-white focus:outline-none focus:border-[#143352] font-mono leading-relaxed placeholder:text-[#8FA6BC]"
+                        className="w-full border border-[#C4D2E0] rounded-md p-2 text-sm text-[#0E1A2A] bg-white focus:outline-none focus:border-[#143352] font-mono leading-relaxed"
                         rows={4}
+                        dir={dir}
                       />
                       <p className="text-[10px] text-[#8FA6BC] mt-1.5">
-                        These are injected verbatim into the engineered prompt&apos;s exclusions block. Pre-flight verifies preservation.
+                        {T("constraints_help")}
                       </p>
                     </div>
 
                     {!result.preflight.passed && (
                       <div className="border border-[#E4B5AE] bg-[#FBEAE8] rounded-md p-3">
-                        <p className="text-xs font-semibold text-[#8B3A2E] mb-1.5">Pre-flight issues:</p>
+                        <p className="text-xs font-semibold text-[#8B3A2E] mb-1.5">{T("preflight_issues_label")}</p>
                         <ul className="text-xs text-[#0E1A2A] space-y-1">
                           {result.preflight.issues.map((i, idx) => (
                             <li key={idx}>
@@ -364,32 +492,32 @@ Output in French`}
                     )}
 
                     <p className="text-[10px] text-[#8FA6BC] pt-2 border-t border-[#C4D2E0]">
-                      Any change re-engineers the prompt instantly. Still client-side. Still zero retention.
+                      {T("refine_footer")}
                     </p>
                   </div>
                 )}
               </div>
 
-              {/* Feedback widget — privacy-first, no server */}
+              {/* Feedback */}
               <div className="mt-6">
                 <button
                   onClick={() => setFeedbackOpen(!feedbackOpen)}
                   className="flex items-center gap-2 text-xs text-[#143352] font-semibold uppercase tracking-wider hover:text-[#0A1F35] transition-colors"
                 >
                   <span className="inline-block w-4 text-center">{feedbackOpen ? "−" : "+"}</span>
-                  Give feedback
+                  {T("feedback_button")}
                   {rating > 0 && <span className="text-[#A67C3D]">★ {rating}/5</span>}
                 </button>
 
                 {feedbackOpen && (
                   <div className="mt-3 p-5 bg-white border border-[#C4D2E0] rounded-md space-y-4">
                     <p className="text-xs text-[#4A5A6E] leading-relaxed">
-                      Help us make this better. Rate the engineered prompt and tell us what you would change. Nothing transmits until you click <strong>Email</strong> or <strong>Copy</strong> — both routes stay on your machine.
+                      {T("feedback_intro")}
                     </p>
 
                     <div>
                       <label className="block text-xs text-[#4A5A6E] font-semibold uppercase tracking-wider mb-2">
-                        Quality rating
+                        {T("rating_label")}
                       </label>
                       <div className="flex gap-1.5">
                         {[1, 2, 3, 4, 5].map((n) => (
@@ -401,7 +529,7 @@ Output in French`}
                                 ? "border-[#A67C3D] bg-[#A67C3D] text-white"
                                 : "border-[#C4D2E0] bg-white text-[#8FA6BC] hover:border-[#A67C3D]"
                             }`}
-                            aria-label={`${n} star${n > 1 ? "s" : ""}`}
+                            aria-label={`${n}`}
                           >
                             ★
                           </button>
@@ -411,7 +539,7 @@ Output in French`}
                             onClick={() => setRating(0)}
                             className="text-[10px] text-[#8FA6BC] hover:text-[#143352] px-2"
                           >
-                            clear
+                            {T("clear_rating")}
                           </button>
                         )}
                       </div>
@@ -419,18 +547,14 @@ Output in French`}
 
                     <div>
                       <label className="block text-xs text-[#4A5A6E] font-semibold uppercase tracking-wider mb-2">
-                        What worked? What didn&apos;t? What would you change?
+                        {T("feedback_textarea_label")}
                       </label>
                       <textarea
                         value={feedbackText}
                         onChange={(e) => setFeedbackText(e.target.value)}
-                        placeholder={`Examples:
-"Wrong archetype detected — this was a meeting prep not an email"
-"Quality axis label 'Strategic depth' confused me — what does it actually output?"
-"The pre-flight badge is great, more of that"
-"Add a German adapter"`}
-                        className="w-full border border-[#C4D2E0] rounded-md p-3 text-sm text-[#0E1A2A] bg-white focus:outline-none focus:border-[#143352] leading-relaxed placeholder:text-[#8FA6BC]"
+                        className="w-full border border-[#C4D2E0] rounded-md p-3 text-sm text-[#0E1A2A] bg-white focus:outline-none focus:border-[#143352] leading-relaxed"
                         rows={5}
+                        dir={dir}
                       />
                     </div>
 
@@ -438,9 +562,9 @@ Output in French`}
                       <button
                         onClick={() => {
                           const body = buildFeedbackPayload({
-                            rating, feedbackText, task, result, userConstraints,
+                            rating, feedbackText, task, result, userConstraints, lang,
                           });
-                          const subject = `PromptDolphin feedback${rating ? ` (${rating}/5)` : ""}`;
+                          const subject = `PromptDolphin feedback${rating ? ` (${rating}/5)` : ""} [${lang}]`;
                           const href = `mailto:feedback@promptdolphin.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                           window.location.href = href;
                           setFeedbackStatus("emailed");
@@ -449,12 +573,12 @@ Output in French`}
                         disabled={!feedbackText.trim() && rating === 0}
                         className="flex-1 px-4 py-2 bg-[#143352] text-white rounded-md text-xs font-semibold hover:bg-[#0A1F35] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
-                        {feedbackStatus === "emailed" ? "✓ Email opened" : "Send via your email"}
+                        {feedbackStatus === "emailed" ? T("email_opened") : T("send_email")}
                       </button>
                       <button
                         onClick={() => {
                           const body = buildFeedbackPayload({
-                            rating, feedbackText, task, result, userConstraints,
+                            rating, feedbackText, task, result, userConstraints, lang,
                           });
                           navigator.clipboard.writeText(body).then(() => {
                             setFeedbackStatus("copied");
@@ -464,12 +588,12 @@ Output in French`}
                         disabled={!feedbackText.trim() && rating === 0}
                         className="flex-1 px-4 py-2 bg-white border border-[#143352] text-[#143352] rounded-md text-xs font-semibold hover:bg-[#E8EFF5] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                       >
-                        {feedbackStatus === "copied" ? "✓ Copied" : "Copy to clipboard"}
+                        {feedbackStatus === "copied" ? T("copied") : T("copy_clipboard")}
                       </button>
                     </div>
 
                     <p className="text-[10px] text-[#8FA6BC] pt-2 border-t border-[#C4D2E0] leading-relaxed">
-                      We bundle your feedback with the archetype, depth, and model that were selected — so we can debug without seeing your task content. <strong>Your task text and any constraints are NOT included.</strong> Verify by clicking Copy first.
+                      {T("feedback_footer")}
                     </p>
                   </div>
                 )}
@@ -485,18 +609,20 @@ Output in French`}
         <div className="w-full max-w-5xl xl:max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-10 md:gap-12">
           <div>
             <p className="text-5xl font-serif text-[#143352]" style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}>0</p>
-            <p className="text-sm font-semibold text-[#0E1A2A] mt-2 mb-1">Compute cost</p>
-            <p className="text-xs text-[#4A5A6E] leading-relaxed">All assembly happens in your browser. Our server costs are flat. Yours are nothing.</p>
+            <p className="text-sm font-semibold text-[#0E1A2A] mt-2 mb-1">{T("acq_compute_label")}</p>
+            <p className="text-xs text-[#4A5A6E] leading-relaxed">{T("acq_compute_body")}</p>
           </div>
           <div>
             <p className="text-5xl font-serif text-[#143352]" style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}>0</p>
-            <p className="text-sm font-semibold text-[#0E1A2A] mt-2 mb-1">Retention</p>
-            <p className="text-xs text-[#4A5A6E] leading-relaxed">Nothing you type leaves your browser. No third-party connections allowed by our CSP. Verifiable in DevTools.</p>
+            <p className="text-sm font-semibold text-[#0E1A2A] mt-2 mb-1">{T("acq_retention_label")}</p>
+            <p className="text-xs text-[#4A5A6E] leading-relaxed">{T("acq_retention_body")}</p>
           </div>
           <div>
             <p className="text-5xl font-serif text-[#143352]" style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}>0</p>
-            <p className="text-sm font-semibold text-[#0E1A2A] mt-2 mb-1">IT objections</p>
-            <p className="text-xs text-[#4A5A6E] leading-relaxed">Compatible with Zscaler, Netskope, Umbrella, Palo Alto. Open-source engine. <a href="/trust" className="underline text-[#143352]">Read the proof →</a></p>
+            <p className="text-sm font-semibold text-[#0E1A2A] mt-2 mb-1">{T("acq_it_label")}</p>
+            <p className="text-xs text-[#4A5A6E] leading-relaxed">
+              {T("acq_it_body")} <a href="/trust" className="underline text-[#143352]">{T("acq_read_proof")}</a>
+            </p>
           </div>
         </div>
       </section>
@@ -504,27 +630,27 @@ Output in French`}
       {/* Footer */}
       <footer className="bg-[#0A1F35] py-10 sm:py-12 md:py-14 px-4 sm:px-6 text-center">
         <p className="mb-3 text-sm text-[#C4D2E0]">
-          Prompt intelligence powered by{" "}
+          {T("footer_powered_by")}{" "}
           <a href="https://krentix.com" target="_blank" rel="noopener noreferrer"
              className="font-semibold text-[#A67C3D] hover:text-[#c9973f] transition-colors underline-offset-2 underline">
             Krentix
           </a>
         </p>
         <p className="text-[11px] text-[#8FA6BC] space-x-3">
-          <a href="/for-teams" className="hover:text-[#F5F9FC] transition-colors">For teams</a>
+          <a href="/for-teams" className="hover:text-[#F5F9FC] transition-colors">{T("footer_for_teams")}</a>
           <span>·</span>
-          <a href="/trust" className="hover:text-[#F5F9FC] transition-colors">Trust</a>
+          <a href="/trust" className="hover:text-[#F5F9FC] transition-colors">{T("footer_trust")}</a>
           <span>·</span>
-          <a href="/privacy" className="hover:text-[#F5F9FC] transition-colors">Privacy</a>
+          <a href="/privacy" className="hover:text-[#F5F9FC] transition-colors">{T("footer_privacy")}</a>
           <span>·</span>
           <a href="https://github.com/joelrobic-gif/promptdolphin-engine" target="_blank" rel="noopener noreferrer" className="hover:text-[#F5F9FC] transition-colors">
-            Open-source engine
+            {T("footer_oss")}
           </a>
           <span>·</span>
-          <span>No tracking cookies</span>
+          <span>{T("footer_no_cookies")}</span>
         </p>
         <p className="text-[10px] text-[#4A5A6E] mt-3">
-          Robic Direct Inc. · No third-party connections · Engine v2.0
+          {T("footer_legal")}
         </p>
       </footer>
 
