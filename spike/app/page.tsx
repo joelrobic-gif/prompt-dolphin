@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
 import {
   engineer,
@@ -24,6 +24,13 @@ import {
   persistLang,
   type LangId,
 } from "@/lib/i18n";
+import {
+  parseSegments,
+  SEGMENT_EXPLAINS,
+  type Segment,
+  type SegmentKind,
+} from "@/lib/explain";
+import { LEXICON } from "@/lib/lexicon";
 
 // Build feedback payload — privacy-first.
 function buildFeedbackPayload(args: {
@@ -84,6 +91,13 @@ export default function Home() {
   const [langOpen, setLangOpen] = useState(false);
   // Educational format section toggle
   const [formatsOpen, setFormatsOpen] = useState(false);
+  // Engineered prompt explain
+  const [activeSegmentIdx, setActiveSegmentIdx] = useState<number | null>(null);
+  const [showLong, setShowLong] = useState(false);
+  // Voice input
+  const [isListening, setIsListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const recognitionRef = useRef<unknown>(null);
   // Feedback widget
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
@@ -141,6 +155,82 @@ export default function Home() {
     () => userConstraints.split("\n").map((s) => s.trim()).filter(Boolean),
     [userConstraints]
   );
+
+  // Parse segments for the active engineered prompt
+  const segments = useMemo<Segment[]>(() => {
+    if (!result) return [];
+    return parseSegments(result.engineered, result.adapter);
+  }, [result]);
+
+  // Detect Web Speech API availability
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const SR = (window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown }).SpeechRecognition
+      || (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition;
+    setVoiceSupported(!!SR);
+  }, []);
+
+  const toggleMic = useCallback(() => {
+    if (typeof window === "undefined") return;
+    type SRConstructor = new () => {
+      lang: string;
+      interimResults: boolean;
+      continuous: boolean;
+      onresult: (e: { results: { isFinal: boolean; 0: { transcript: string } }[][] | ArrayLike<{ isFinal: boolean; 0: { transcript: string } }> }) => void;
+      onerror: (e: { error: string }) => void;
+      onend: () => void;
+      start: () => void;
+      stop: () => void;
+    };
+    const SR = ((window as unknown as { SpeechRecognition?: SRConstructor }).SpeechRecognition
+      || (window as unknown as { webkitSpeechRecognition?: SRConstructor }).webkitSpeechRecognition) as SRConstructor | undefined;
+    if (!SR) return;
+
+    if (isListening && recognitionRef.current) {
+      (recognitionRef.current as { stop: () => void }).stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = new SR();
+    // Map our LangId to BCP-47 best-effort
+    const bcp47Map: Record<string, string> = {
+      en: "en-US", fr: "fr-FR", es: "es-ES", de: "de-DE", it: "it-IT",
+      pt: "pt-PT", nl: "nl-NL", ja: "ja-JP", "zh-CN": "zh-CN", "zh-TW": "zh-TW",
+      ko: "ko-KR", ar: "ar-SA", ru: "ru-RU", pl: "pl-PL",
+    };
+    recognition.lang = bcp47Map[lang] || "en-US";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    let interim = "";
+    recognition.onresult = (e) => {
+      interim = "";
+      const resultsArr = Array.from(e.results as ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>);
+      for (let i = 0; i < resultsArr.length; i += 1) {
+        const r = resultsArr[i];
+        const piece = r[0].transcript;
+        if (r.isFinal) {
+          setTask((prev) => (prev.trim() ? prev + " " + piece : piece));
+        } else {
+          interim += piece;
+        }
+      }
+      if (interim) {
+        // show interim by appending temporarily, replace on next final
+        setTask((prev) => prev); // no-op, interim shown via DOM if desired
+      }
+    };
+    recognition.onerror = () => { setIsListening(false); };
+    recognition.onend = () => { setIsListening(false); };
+    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch {
+      setIsListening(false);
+    }
+  }, [isListening, lang]);
 
   useEffect(() => {
     if (!result) return;
@@ -289,7 +379,7 @@ export default function Home() {
           </div>
 
           {/* Input */}
-          <div>
+          <div className="relative">
             <textarea
               ref={textareaRef}
               value={task}
@@ -301,11 +391,43 @@ export default function Home() {
                 }
               }}
               placeholder={T("input_placeholder")}
-              className="w-full border-2 border-[#C4D2E0] rounded-md p-4 text-[#0E1A2A] text-sm resize-none focus:outline-none focus:border-[#143352] bg-white leading-relaxed placeholder:text-[#8FA6BC] shadow-sm"
+              className={`w-full border-2 border-[#C4D2E0] rounded-md p-4 ${voiceSupported ? "pe-14" : ""} text-[#0E1A2A] text-base sm:text-sm resize-none focus:outline-none focus:border-[#143352] bg-white leading-relaxed placeholder:text-[#8FA6BC] shadow-sm`}
               rows={5}
               autoFocus
               dir={dir}
             />
+            {voiceSupported && (
+              <button
+                type="button"
+                onClick={toggleMic}
+                aria-label={isListening ? "Stop voice input" : "Start voice input"}
+                aria-pressed={isListening}
+                className={`absolute top-3 ${dir === 'rtl' ? 'left-3' : 'right-3'} w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                  isListening
+                    ? "bg-[#8B3A2E] text-white shadow-md ring-2 ring-[#8B3A2E]/40 animate-pulse"
+                    : "bg-[#F5F9FC] text-[#143352] border border-[#C4D2E0] hover:border-[#143352] hover:bg-[#E8EFF5]"
+                }`}
+                title={isListening ? "Tap to stop" : "Tap to dictate"}
+              >
+                {isListening ? (
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+                    <rect width="14" height="14" rx="2" />
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" y1="19" x2="12" y2="23" />
+                    <line x1="8" y1="23" x2="16" y2="23" />
+                  </svg>
+                )}
+              </button>
+            )}
+            {isListening && (
+              <p className={`absolute -bottom-5 ${dir === 'rtl' ? 'right-2' : 'left-2'} text-[10px] text-[#8B3A2E] font-semibold animate-pulse`}>
+                ● listening… ({LANGUAGES[lang].native})
+              </p>
+            )}
           </div>
 
           {/* Quality Axis — PRIMARY CONTROL */}
@@ -465,14 +587,130 @@ export default function Home() {
               </div>
 
               <div
-                className="bg-[#0A1F35] border border-[#143352] rounded-md p-5 text-sm text-[#F5F9FC] font-mono whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto shadow-lg"
+                className="bg-[#0A1F35] border border-[#143352] rounded-md p-3 sm:p-5 text-xs sm:text-sm text-[#F5F9FC] font-mono whitespace-pre-wrap leading-relaxed max-h-[28rem] overflow-y-auto shadow-lg"
                 dir="ltr"
               >
-                {result.engineered}
+                {segments.length === 0 ? (
+                  result.engineered
+                ) : (
+                  segments.map((seg, idx) => {
+                    const active = activeSegmentIdx === idx;
+                    const isClickable = seg.kind !== "literal";
+                    const segmentColors: Record<SegmentKind, string> = {
+                      role: "rgba(166, 124, 61, 0.18)",
+                      task: "rgba(31, 111, 79, 0.22)",
+                      context: "rgba(70, 130, 180, 0.18)",
+                      reasoning: "rgba(139, 58, 107, 0.18)",
+                      format: "rgba(166, 124, 61, 0.14)",
+                      exclusions: "rgba(139, 58, 46, 0.18)",
+                      examples: "rgba(70, 130, 180, 0.14)",
+                      critique: "rgba(31, 111, 79, 0.14)",
+                      extra: "rgba(139, 58, 107, 0.14)",
+                      literal: "transparent",
+                    };
+                    return (
+                      <span
+                        key={idx}
+                        onClick={() => {
+                          if (!isClickable) return;
+                          setActiveSegmentIdx(active ? null : idx);
+                          setShowLong(false);
+                        }}
+                        className={`${isClickable ? "cursor-pointer hover:brightness-125" : ""} ${active ? "outline outline-2 outline-[#A67C3D]" : ""}`}
+                        style={{
+                          backgroundColor: active ? "rgba(166, 124, 61, 0.32)" : segmentColors[seg.kind],
+                          borderRadius: "3px",
+                          padding: isClickable ? "1px 2px" : "0",
+                          display: "inline",
+                          transition: "background-color 0.15s, outline 0.15s",
+                        }}
+                        title={isClickable ? `Tap to learn: ${SEGMENT_EXPLAINS[seg.kind].title}` : undefined}
+                      >
+                        {seg.open}{seg.content}{seg.close}
+                      </span>
+                    );
+                  })
+                )}
               </div>
 
+              {/* Per-segment explanation drawer */}
+              {activeSegmentIdx !== null && segments[activeSegmentIdx] && segments[activeSegmentIdx].kind !== "literal" && (() => {
+                const seg = segments[activeSegmentIdx];
+                const ex = SEGMENT_EXPLAINS[seg.kind];
+                return (
+                  <div className="mt-3 bg-white border-2 border-[#A67C3D] rounded-md p-4 sm:p-5 shadow-sm">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[#A67C3D] mb-0.5">
+                          {seg.kind} block
+                        </p>
+                        <h3 className="text-base sm:text-lg font-semibold text-[#0E1A2A]">{ex.title}</h3>
+                      </div>
+                      <button
+                        onClick={() => { setActiveSegmentIdx(null); setShowLong(false); }}
+                        className="shrink-0 w-7 h-7 rounded-full bg-[#F5F9FC] hover:bg-[#E8EFF5] text-[#4A5A6E] text-base flex items-center justify-center"
+                        aria-label="Close"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <p className="text-sm text-[#0E1A2A] leading-relaxed mb-3">{ex.short}</p>
+
+                    {showLong && (
+                      <div className="space-y-3 mb-3">
+                        <p className="text-sm text-[#0E1A2A] leading-relaxed">{ex.long}</p>
+                        <div className="bg-[#F5F9FC] border-l-2 border-[#1F6F4F] p-3 rounded-r">
+                          <p className="text-[10px] uppercase tracking-wider font-semibold text-[#1F6F4F] mb-1">Why it helps</p>
+                          <p className="text-xs sm:text-sm text-[#0E1A2A] leading-relaxed">{ex.whyItHelps}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Lexicon terms detected in this segment */}
+                    {seg.lexiconTerms.length > 0 && (
+                      <div className="mb-3 pt-3 border-t border-[#E8EFF5]">
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-[#4A5A6E] mb-2">
+                          Terms in this block
+                        </p>
+                        <div className="space-y-2">
+                          {seg.lexiconTerms.map((termId) => {
+                            const term = LEXICON[termId];
+                            if (!term) return null;
+                            return (
+                              <div key={termId} className="bg-[#F5F9FC] rounded p-2.5">
+                                <p className="text-xs font-semibold text-[#143352] mb-0.5">{term.label}</p>
+                                <p className="text-[11px] text-[#4A5A6E] leading-snug">{term.short}</p>
+                                {term.links && term.links.length > 0 && (
+                                  <div className="mt-1.5 flex flex-wrap gap-2">
+                                    {term.links.map((l, li) => (
+                                      <a key={li} href={l.url} target="_blank" rel="noopener noreferrer"
+                                         className="text-[10px] text-[#A67C3D] hover:text-[#8a6530] underline">
+                                        {l.label} ↗
+                                      </a>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => setShowLong(!showLong)}
+                      className="text-xs font-semibold text-[#143352] hover:text-[#0A1F35] transition-colors"
+                    >
+                      {showLong ? "Show less" : "Learn more →"}
+                    </button>
+                  </div>
+                );
+              })()}
+
               <p className="mt-2 text-[10px] text-[#8FA6BC]">
-                {T("output_lang_note")}
+                {T("output_lang_note")}{" "}
+                <span className="hidden sm:inline">· Tap any colored block above to learn what it does.</span>
+                <span className="sm:hidden">· Tap any block above to learn.</span>
               </p>
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
