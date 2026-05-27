@@ -18,6 +18,7 @@ const LOCAL_HERO_IMAGES: string[] = [
 // Add more by browsing unsplash.com, copying the photo's slug, and pasting here.
 // Photo URLs have the form: photo-<timestamp>-<hash>
 const UNSPLASH_DIRECT_PHOTOS: string[] = [
+  'photo-1723741003462-c6f100395b7d', // dolphin breaching, Azores (SALEM, 2024 — award-grade hero shot)
   'photo-1583212292454-1fe6229603b7', // dolphins underwater
   'photo-1518837695005-2083093ee35b', // humpback whale tail
   'photo-1551244072-5d12893278ab',    // ocean sunset
