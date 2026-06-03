@@ -28,6 +28,7 @@
 import { resolveBrand, NEUTRAL_BRAND } from './brand/tokens.js';
 import { renderExamplesXml } from './few-shot/examples-bank.js';
 import { detectDomains } from './few-shot/domain-detect.js';
+import { renderCapabilityRouting, renderCapabilityRoutingCompact } from './capabilities/capability-routing.js';
 import { getRefinementDirective, recommendRefinement } from './directives/refinement.js';
 import { shapeFor, detectProviderFromModel } from './providers/shape-variants.js';
 
@@ -309,7 +310,7 @@ export const VALID_ARCHETYPES = Object.freeze(Object.keys(ARCHETYPES));
  * Build a portable XML-tagged prompt envelope.
  * Same shape as PromptDolphin's claude adapter (most portable across providers).
  */
-function buildEnvelope({ task, archetype, connector, outputFormat, reviewMode, depth, richMedia, brand, fewShot, refinement, provider, promptDomains }) {
+function buildEnvelope({ task, archetype, connector, outputFormat, reviewMode, depth, richMedia, brand, fewShot, refinement, provider, promptDomains, capabilityRouting, capabilityRuntimes, capabilityCompact }) {
   const parts = ARCHETYPES[archetype] || ARCHETYPES.general;
   const { role, context: baseContext, format: baseFormat, constraints, critique } = parts;
 
@@ -333,6 +334,17 @@ function buildEnvelope({ task, archetype, connector, outputFormat, reviewMode, d
   const examplesXml = fewShot && fewShot > 0
     ? renderExamplesXml(archetype, fewShot, { promptDomains: promptDomains || [] })
     : '';
+
+  // Capability routing - LLM self-identifies and applies its own tool block.
+  // capabilityRouting can be: true | false | 'compact'. Default true.
+  const capabilityText = (() => {
+    if (capabilityRouting === false) return '';
+    const opts = capabilityRuntimes ? { runtimes: capabilityRuntimes } : {};
+    if (capabilityCompact || capabilityRouting === 'compact') {
+      return renderCapabilityRoutingCompact(opts);
+    }
+    return renderCapabilityRouting(opts);
+  })();
   const refinementText = getRefinementDirective(refinement);
 
   const renderer = shapeFor(provider);
@@ -344,6 +356,7 @@ function buildEnvelope({ task, archetype, connector, outputFormat, reviewMode, d
     critique,
     examples: examplesXml,
     refinement: refinementText,
+    capabilities: capabilityText,
     suffix,
     task,
   });
@@ -456,6 +469,17 @@ export function engineer(task, options = {}) {
     ? options.domains
     : detectDomains(taskStr);
 
+  // Capability routing defaults ON for substantive inputs. For trivial /
+  // follow-up prompts (under 60 chars) it inflates envelope without adding
+  // value - skip it. Accepts: true (full), 'compact' (one-liner), false (off).
+  const capabilityRouting = options.capabilityRouting === undefined
+    ? (taskStr.length >= 60 ? true : false)
+    : options.capabilityRouting;
+  const capabilityRuntimes = Array.isArray(options.capabilityRuntimes)
+    ? options.capabilityRuntimes
+    : null;
+  const capabilityCompact = options.capabilityCompact === true;
+
   const enhanced = buildEnvelope({
     task: taskStr,
     ...resolved,
@@ -464,6 +488,9 @@ export function engineer(task, options = {}) {
     refinement,
     provider,
     promptDomains,
+    capabilityRouting,
+    capabilityRuntimes,
+    capabilityCompact,
   });
 
   const techniques = ['role-priming', 'context-framing', 'explicit-format', 'do-not-list', 'self-critique-check'];
@@ -495,10 +522,11 @@ export function engineer(task, options = {}) {
       refinement,
       provider,
       promptDomains,
+      capabilityRouting,
     },
     techniques_used: techniques,
     original_issues: issues,
   };
 }
 
-export const DOLPHIN_ENGINE_VERSION = '2.2.0';
+export const DOLPHIN_ENGINE_VERSION = '2.3.0';

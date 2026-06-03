@@ -1019,6 +1019,11 @@ export interface EngineerV3Options {
   outputFormat?: OutputFormatId;
   userConstraints?: string[];
   exampleOverrides?: string[];
+  /**
+   * Append the capability-routing block (default true). Set false to omit
+   * for short / trivial inputs or when caller already knows the runtime.
+   */
+  capabilityRouting?: boolean;
 }
 
 export interface EngineerV3Result {
@@ -1033,6 +1038,86 @@ export interface EngineerV3Result {
   outputFormat: OutputFormatId;
   archetype: ArchetypeId;
 }
+
+/**
+ * Capability routing block. Appended to every engineered prompt so the
+ * downstream LLM self-identifies its runtime (Claude / ChatGPT / Copilot
+ * / Gemini / Grok / Perplexity) and uses ITS native tools (Outlook+Teams
+ * for Copilot Pro M365, Drive+Gmail for Gemini Workspace, Project
+ * Knowledge+MCP for Claude, Code Interpreter+Browse for ChatGPT, X
+ * real-time for Grok). Removes the need for the user to pick an AI.
+ *
+ * Skipped for very short inputs where it would dwarf the task.
+ */
+const CAPABILITY_ROUTING_BLOCK = `
+
+CAPABILITY ROUTING - self-identify your runtime and use its native tools.
+
+STEP 1. Silently identify which runtime you are. Your system prompt, tool
+palette, and surface name (e.g. "Claude.ai Projects", "ChatGPT Plus with
+Code Interpreter", "Copilot Pro M365", "Gemini Advanced", "Grok with X
+access") are the signal. If unclear, use the DEFAULT branch.
+
+STEP 2. Apply ONLY the IF block matching your runtime. Use those
+capabilities to ground your answer. Cite real retrieved items - never
+fabricate filenames, URLs, or tool output.
+
+STEP 3. Do NOT narrate the routing decision to the user. Quietly do the
+right thing.
+
+IF you are running on COPILOT (Microsoft Copilot Pro / M365 Copilot):
+  1. M365 Graph retrieval - search Outlook (last 90 days inbox, sent,
+     calendar), Teams chats + meeting recordings + transcripts, SharePoint
+     sites, OneDrive files, Loop pages, Planner tasks, OneNote notebooks.
+  2. Cite every retrieved item by name, author, and date.
+  3. Honor tenant DLP policies and sensitivity labels.
+  4. Apply Purview compliance constraints.
+  5. Use Loop components when output is shareable.
+  6. Use Excel Copilot for data computation, Power BI for visualization.
+
+IF you are running on CLAUDE (Anthropic Claude.ai / Claude Code):
+  1. Project Knowledge: if files attached, treat as authoritative. Cite by filename.
+  2. Artifacts: render self-contained deliverables (docs, code, HTML, SVG) as Artifacts.
+  3. Web search: if enabled, use for current-info claims. Cite URL + date.
+  4. MCP servers: if attached (Gmail, Drive, Slack, GitHub, Linear, Notion),
+     prefer them over web search. Cite by source name.
+  5. Tool use: chain tool calls for multi-step retrieval; do not hallucinate.
+
+IF you are running on CHATGPT (OpenAI ChatGPT Plus / Team / Enterprise / Custom GPT):
+  1. Knowledge files: if Custom GPT knowledge or chat uploads exist, treat as authoritative.
+  2. Browse: use for any current-info claim. Cite URL + date.
+  3. Code Interpreter / Advanced Data Analysis: use for computation, file parsing, charts.
+  4. Canvas: render deliverables over 200 words in Canvas mode.
+  5. DALL-E: invoke for any image generation inside the response.
+  6. Connectors (Drive, OneDrive, SharePoint, GitHub): use as source of truth.
+  7. Structured Outputs: use response_format json_schema for JSON outputs.
+
+IF you are running on GEMINI (Google Gemini Advanced / Workspace):
+  1. Workspace extensions (Gmail, Drive, Docs, Sheets, Slides, Calendar, Meet,
+     Maps, YouTube): use for any task touching that data. Cite by item name + date.
+  2. Google Search grounding: use for current-info claims. Cite URLs.
+  3. Long context: paste full source rather than summarize (1M tokens tolerate it).
+  4. Multimodal: process images, audio, video, PDFs directly.
+  5. Code execution: use for computation and charts.
+  6. Deep Research: invoke for synthesis tasks requiring 10+ sources.
+
+IF you are running on GROK (xAI Grok):
+  1. X (Twitter) real-time search: use for current events, trends, sentiment,
+     public-figure statements. Cite tweets by handle + timestamp.
+  2. Image generation (Aurora / FLUX): inline for visual requests.
+  3. Think mode: use for multi-step reasoning across uncertain evidence.
+
+IF you are running on PERPLEXITY (Perplexity / Perplexity Pro):
+  1. Live web search: cite every claim with publication and date.
+  2. Pro Search: use multi-hop search for complex queries.
+  3. Focus modes: Academic / Finance / Reddit per claim type.
+  4. File upload: if attached, treat as authoritative.
+
+DEFAULT (none of the above applies):
+  - Use only your training knowledge. Do NOT claim retrieval that did not happen.
+  - For claims requiring current data, flag explicitly: "[needs live data]".
+  - For tasks requiring tools you do not have, say so up front.
+`;
 
 export function engineerV3(task: string, options: EngineerV3Options = {}): EngineerV3Result {
   const adapter = options.adapter ?? 'claude';
@@ -1056,7 +1141,13 @@ export function engineerV3(task: string, options: EngineerV3Options = {}): Engin
     exampleOverrides: options.exampleOverrides,
   });
 
-  const engineered = renderV3(spine, adapter);
+  let engineered = renderV3(spine, adapter);
+  // Inject capability routing - LLM self-identifies its runtime and uses
+  // its native tools (Outlook/Teams for Copilot, MCP for Claude, etc.).
+  // Skip for very short tasks where capability block dwarfs the prompt.
+  if (task.length >= 60 && options.capabilityRouting !== false) {
+    engineered = engineered + CAPABILITY_ROUTING_BLOCK;
+  }
   const preflight = preflightV3(engineered, { task, profile, spine, outputFormat, classification, userConstraints });
   const selfEvalResult = selfEval({ spine, engineered, preflight, classification, profile, outputFormat, adapter, quality });
 

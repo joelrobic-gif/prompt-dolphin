@@ -21,7 +21,7 @@ export const SHAPE_VARIANTS_VERSION = '1.0.0';
 export const SUPPORTED_PROVIDERS = Object.freeze(['claude', 'gpt', 'gemini', 'generic']);
 
 function renderClaudeXml(parts) {
-  const { role, context, format, constraints, critique, examples, refinement, suffix, task } = parts;
+  const { role, context, format, constraints, critique, examples, refinement, capabilities, suffix, task } = parts;
   return [
     `<role>\n${role}\n</role>`,
     `<context>\n${context}\n</context>`,
@@ -30,13 +30,14 @@ function renderClaudeXml(parts) {
     `<critique>\n${critique}\n</critique>`,
     examples && `<examples>\n${examples}\n</examples>`,
     refinement && `<refinement>\n${refinement}\n</refinement>`,
+    capabilities && `<capabilities>\n${capabilities}\n</capabilities>`,
     suffix && `<extra>\n${suffix}\n</extra>`,
     `### New Input:\n${task}`,
   ].filter(Boolean).join('\n\n');
 }
 
 function renderGptMarkdown(parts) {
-  const { role, context, format, constraints, critique, examples, refinement, suffix, task } = parts;
+  const { role, context, format, constraints, critique, examples, refinement, capabilities, suffix, task } = parts;
   return [
     `**Role**\n${role}`,
     `**Context**\n${context}`,
@@ -45,13 +46,14 @@ function renderGptMarkdown(parts) {
     `**Self-critique**\n${critique}`,
     examples && `**Examples**\n${examples}`,
     refinement && `**Refinement**\n${refinement}`,
+    capabilities && `**Capability routing**\n${capabilities}`,
     suffix && `**Additional**\n${suffix}`,
     `---\n**Task**\n${task}\n\nNow produce the response.`,
   ].filter(Boolean).join('\n\n');
 }
 
 function renderGeminiConcise(parts) {
-  const { role, context, format, constraints, critique, examples, refinement, suffix, task } = parts;
+  const { role, context, format, constraints, critique, examples, refinement, capabilities, suffix, task } = parts;
   return [
     `ROLE: ${role}`,
     `CONTEXT: ${context}`,
@@ -60,6 +62,7 @@ function renderGeminiConcise(parts) {
     `CRITIQUE: ${critique}`,
     examples && `EXAMPLES:\n${examples}`,
     refinement && `REFINEMENT:\n${refinement}`,
+    capabilities && `CAPABILITY_ROUTING:\n${capabilities}`,
     suffix && `EXTRA: ${suffix}`,
     `\nTASK:\n${task}`,
   ].filter(Boolean).join('\n\n');

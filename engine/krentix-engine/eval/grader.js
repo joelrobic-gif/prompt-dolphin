@@ -30,11 +30,14 @@ export function gradeDeterministic(engineered, expected, originalInput, opts = {
     || engineered?.options?.outputFormat === 'html'
     || engineered?.options?.outputFormat === 'powerpoint';
   // Few-shot examples are intentional bulk — must not penalize cost when
-  // caller opted in. Visual archetypes earn the highest budget.
+  // caller opted in. Visual archetypes earn the highest budget. Capability
+  // routing adds ~4000 chars deterministically when present.
   const fewShot = Number(engineered?.options?.fewShot ?? 0);
+  const capRouting = engineered?.options?.capabilityRouting;
   const baseMax = isVisual ? 80 : 12;
   const fewShotBump = fewShot > 0 ? 40 : 0;
-  const maxTokenMultiplier = opts.maxTokenMultiplier ?? (baseMax + fewShotBump);
+  const capabilityBump = capRouting === true ? 80 : (capRouting === 'compact' ? 20 : 0);
+  const maxTokenMultiplier = opts.maxTokenMultiplier ?? (baseMax + fewShotBump + capabilityBump);
 
   const enhanced = String(engineered?.enhanced || '');
   const original = String(originalInput || '');
