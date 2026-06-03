@@ -86,7 +86,9 @@ export default function Home() {
   const [task, setTask] = useState("");
   const [quality, setQuality] = useState<QualityId>("fast_detailed");
   const [adapter, setAdapter] = useState<AdapterId>("claude");
-  const [outputFormat, setOutputFormat] = useState<OutputFormatId>("text");
+  // Default to HTML — the most impressive showcase format for first-time users.
+  // Users still freely switch via dropdown; text/markdown/etc are one click away.
+  const [outputFormat, setOutputFormat] = useState<OutputFormatId>("html");
   const [userConstraints, setUserConstraints] = useState("");
   const [result, setResult] = useState<EngineerResult | null>(null);
   const [copied, setCopied] = useState(false);
@@ -646,7 +648,14 @@ export default function Home() {
               >
                 {OUTPUT_FORMAT_ORDER.map((fid) => {
                   const f = OUTPUT_FORMATS[fid];
-                  return <option key={fid} value={fid}>{f.icon} · {f.label}</option>;
+                  const prefix = f.recommended ? '✨ ' : '';
+                  const suffix = f.timeEstimate ? `  ·  ${f.timeEstimate}` : '';
+                  const recTag = f.recommended ? '  ·  Recommended' : '';
+                  return (
+                    <option key={fid} value={fid}>
+                      {prefix}{f.icon} · {f.label}{recTag}{suffix}
+                    </option>
+                  );
                 })}
               </select>
               <a
@@ -667,6 +676,16 @@ export default function Home() {
           {outputFormat !== "text" && (
             <p className="mt-1 text-[10px] text-[#A67C3D] leading-snug">
               ✓ {T("format_chosen_note")}
+            </p>
+          )}
+          {outputFormat === "html" && (
+            <p className="mt-1 text-[10px] text-[#143352] leading-snug">
+              ✨ <strong>HTML is the most impressive format</strong> — magazine-grade design, opens in any browser, prints to PDF beautifully. Takes {OUTPUT_FORMATS.html.timeEstimate} to render.
+            </p>
+          )}
+          {outputFormat !== "html" && outputFormat !== "text" && OUTPUT_FORMATS[outputFormat]?.timeEstimate && (
+            <p className="mt-1 text-[10px] text-[#4A5A6E] leading-snug">
+              ⏱ Takes ~{OUTPUT_FORMATS[outputFormat].timeEstimate} to render. Want the most polished output? Try ✨ HTML.
             </p>
           )}
 

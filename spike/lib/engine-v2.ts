@@ -516,6 +516,10 @@ export interface OutputFormat {
   audience: string;
   downloadTruth: string;
   injection: string;
+  /** UI-only: surface as the recommended default. Currently HTML. */
+  recommended?: boolean;
+  /** Human-readable time estimate (e.g. "30-60s") shown next to the label. */
+  timeEstimate?: string;
 }
 
 export const OUTPUT_FORMATS: Record<OutputFormatId, OutputFormat> = {
@@ -554,6 +558,7 @@ export const OUTPUT_FORMATS: Record<OutputFormatId, OutputFormat> = {
     label: 'PowerPoint slides',
     icon: 'P',
     category: 'visual',
+    timeEstimate: '30-50s',
     valueShort: 'A slide-by-slide deck outline with titles, bullets, and speaker notes — ready to drop into PowerPoint or Keynote.',
     audience: 'Executives presenting to boards, sales teams pitching, anyone running a meeting with slides.',
     downloadTruth: 'Each "slide" is a chunk of text you paste into one PowerPoint slide. ChatGPT Plus / Claude can also export .pptx for some plans.',
@@ -584,16 +589,119 @@ export const OUTPUT_FORMATS: Record<OutputFormatId, OutputFormat> = {
     label: 'HTML page',
     icon: 'H',
     category: 'visual',
-    valueShort: 'A complete styled web page you can save and open in any browser — headings, sections, tables, even interactive elements.',
-    audience: 'Anyone sharing a deliverable that needs to look polished on any device, no app required.',
-    downloadTruth: 'Copy the HTML, save as `report.html`, double-click — opens as a website in your browser. Share via email or hosting.',
-    injection: 'Format as a complete, standalone HTML5 document. Rules:\n- Start with <!DOCTYPE html><html lang="en"><head> ... </head><body> ... </body></html>\n- Include <meta charset="utf-8"> and <meta name="viewport" content="width=device-width, initial-scale=1">\n- Inline CSS in a <style> tag in the <head> — no external dependencies, no CDN links\n- Use semantic HTML: <header>, <main>, <section>, <article>, <footer>, <h1>-<h6>, <ul>/<ol>, <table>\n- Include a <summary> or hero block at the top, a <footer> with the date at the bottom\n- Make it print-friendly (use @media print rules)\n- Keep design clean and professional — system fonts, generous whitespace, max-width 800px content column.',
+    recommended: true,
+    timeEstimate: '30-60s',
+    valueShort: 'Magazine-grade, editorial-design HTML — single self-contained file, opens in any browser, prints to PDF beautifully. The most impressive format Prompt Dolphin produces.',
+    audience: 'Anyone sharing a high-stakes deliverable that needs to look like Stratechery / Bloomberg / The Information at first glance.',
+    downloadTruth: 'Copy the HTML, save as `report.html`, double-click — opens as a website in your browser. Share via email, host on any static site, or print to PDF.',
+    injection: `Format as a COMPLETE, SINGLE-FILE, MAGAZINE-GRADE HTML5 DOCUMENT.
+EDITORIAL DESIGN BAR — match The Information / Stratechery / Bloomberg / The Pudding tier. No exceptions.
+
+STRUCTURE:
+  <!doctype html><html lang="en">
+  <head>: <meta charset=utf-8>, <meta viewport width=device-width,initial-scale=1>, <title>, ALL CSS inline in a single <style>. No external CDN / fonts / scripts / preconnects.
+  <body>: <header class="hero"> + <nav class="toc"> (if doc > 1500 words) + <main> stacked <article>/<section> + <footer>.
+
+TYPOGRAPHY (editorial-grade):
+  Serif headlines: ui-serif, 'Iowan Old Style', 'Apple Garamond', Georgia, serif.
+  Sans body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif.
+  Mono data: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace.
+  Scale: H1 44-52px serif bold (text-wrap: balance); H2 28-32px serif semibold; H3 21px sans medium;
+    Body 17px sans / line-height 1.65 / letter-spacing -0.005em / text-wrap: pretty;
+    Caption 13px sans / line-height 1.4 / color muted.
+  Line-length: max-width 720-760px content column. Generous trailing whitespace (96px+ between sections).
+  Hanging punctuation on blockquotes (text-indent: -0.45em on opening quote).
+  Optical alignment on initial drop-cap when used.
+  font-feature-settings: "ss01", "cv01", "kern", "liga".
+  font-variant-numeric: tabular-nums on numeric columns.
+
+COLOR SYSTEM — 10-stop neutral + 1 accent tint scale, light AND dark scheme:
+  Neutrals: --n50 to --n900 (10 stops, e.g. --n50:#FAFAF9, --n900:#0F1115).
+  Accent: --a50 to --a900 from a single brand hue.
+  Light scheme defaults:
+    --bg:--n50; --ink:--n900; --ink-muted:--n600; --rule:--n200; --accent:--a700; --accent-tint:--a100.
+  Dark scheme via @media (prefers-color-scheme: dark):
+    --bg:--n900; --ink:--n50; --ink-muted:--n400; --rule:--n700; --accent:--a300; --accent-tint:--a800.
+  AAA contrast required on body text.
+  Anti-aliasing: -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility.
+
+HERO BLOCK (top of document):
+  Full-width container, 380-480px tall, generous internal padding (60px+ vertical).
+  Eyebrow (small uppercase, letter-spacing wide, accent color): publication name + as-of timestamp.
+  Headline serif H1, balanced wrap, max 14 words.
+  Dek (serif italic 22-26px, ink-muted): one sentence summarizing the report.
+  Optional hero image: <img> with a REAL source URL (NEVER invent one), OR a tasteful CSS gradient placeholder using the accent hue.
+  Byline row: publication / reading time (computed: words / 220 wpm, rounded to nearest minute).
+
+NAVIGATION (only when doc > 1500 words):
+  <nav class="toc">: anchor-jump table of contents, sticky on desktop (position: sticky; top: 24px), collapses to inline on mobile.
+  Active section indicator via :target.
+
+LAYOUT POLISH:
+  Section dividers: 1px hairline rule in --rule, 32px above + 16px below.
+  Cards: subtle 1px border, 12px border-radius, 28px padding, very soft shadow (rgba(0,0,0,.04) 0 1px 3px).
+  Pull-quotes: large serif italic in accent color, hanging quote mark, 24px above/below.
+  Definition lists: <dl class="defs"> for terms.
+  Sidenotes on desktop (Tufte-style margin notes): float-right 240px wide; full-width inline on mobile.
+  Inline CSS-only sparklines for trend mentions: <svg class="spark" viewBox="0 0 60 20" preserveAspectRatio="none"><polyline points="..." fill="none" stroke="currentColor" stroke-width="1.5"/></svg>.
+  Reading rhythm: 24-32px <p> margins; 48px above <h2>; 32px above <h3>.
+
+TABLES:
+  Numerics right-aligned, monospace, font-variant-numeric: tabular-nums.
+  Zebra striping alternating --n50/--n100 rows.
+  Sticky <th> headers (position: sticky; top: 0) on tables > 8 rows.
+  Cell padding 12px vertical / 16px horizontal.
+  Caption above table (serif italic, ink-muted), <caption> element.
+  Hover row highlight (very subtle: --accent-tint at 0.3 alpha).
+
+CITATIONS:
+  Inline cite pattern: <a href="..." class="cite"><sup>[N]</sup></a>, N references the footer sources list.
+  Every numeric claim, named outlet, statistic, quote, comparison MUST carry an inline cite.
+  Footer <ol class="sources"> with: publication, ISO date, URL, accessed ISO date.
+  Link styling: subtle underline (text-decoration-thickness: 1px, underline-offset: 3px), no color jump unless hover.
+  Hover: thicken underline to 2px + brighten color.
+
+INTERACTIONS (CSS-only, no JS):
+  Smooth scroll on anchor jumps (scroll-behavior: smooth).
+  Focus rings AAA-visible: 2px solid --accent, 2px offset.
+  Hover lift on cards: transform: translateY(-1px); transition: transform 200ms ease.
+  Fade-in on scroll where animation-timeline: view() supported (graceful fallback otherwise).
+
+RESPONSIVE (mobile-first):
+  Mobile (default): single column, sidenotes inline, hero 280px, typography 0.92x.
+  Tablet (>= 768px): 700px content column, sidenotes inline cards.
+  Desktop (>= 1024px): 760px column, sidenotes float right as margin notes.
+  Container max-width 1100px including margin notes.
+
+PRINT STYLESHEET (@media print):
+  Force light scheme. Sans 11pt. Headings sized for letter paper.
+  Page-break-inside: avoid on <article>, <table>, <figure>, <blockquote>.
+  Hide navigation, expand all collapsibles, print source URLs verbatim in footnotes.
+
+ICONOGRAPHY:
+  Inline SVG only (no icon fonts, no CDN). currentColor stroke/fill.
+  Hairline 1.5px stroke, rounded line caps + joins.
+
+ABSOLUTE NO:
+  No <link rel="stylesheet">. No external <script src=>. No font CDN preconnects.
+  No marketing prose ("revolutionary", "game-changing", "groundbreaking", "industry-leading", "synergies", "best-in-class", "next-generation", "paradigm-shift", "world-class", "cutting-edge", "leverage").
+  No invented quotes, statistics, outlets, URLs, images.
+  No emoji in body text (only as small status indicators if data-driven).
+  No deprecated patterns: <font>, <center>, <table> for layout, <br> for spacing.
+
+DELIVERY:
+  Output ONLY the HTML document. No prose preface. No code-fence wrapper.
+  Document must validate as well-formed HTML5 (all tags closed, attributes quoted).
+  Document must render correctly when opened via file:// (no server-required APIs).
+
+The reader's first 5 seconds should communicate publication-grade quality. Beat that bar.`,
   },
   pdf_1pager: {
     id: 'pdf_1pager',
     label: 'PDF one-pager',
     icon: '1',
     category: 'document',
+    timeEstimate: '20-40s',
     valueShort: 'A single-page executive summary — situation, finding, evidence, recommendation, next step. Fits on one printed page.',
     audience: 'Executives, board members, anyone with 60 seconds to absorb a decision.',
     downloadTruth: 'Paste into Word or Google Docs, set margins narrow, export to PDF. Or use HTML output + browser "Save as PDF".',
@@ -604,6 +712,7 @@ export const OUTPUT_FORMATS: Record<OutputFormatId, OutputFormat> = {
     label: 'Research report',
     icon: 'R',
     category: 'document',
+    timeEstimate: '60-120s',
     valueShort: 'A full academic-grade report with executive summary, methodology, findings, analysis, recommendations, limitations, and appendix. 3,000-6,000 words.',
     audience: 'Academics, policy researchers, consulting deliverables, deep dives, white papers.',
     downloadTruth: 'Paste into Word or Google Docs, apply heading styles, export to PDF. Or output as Markdown then convert.',
@@ -641,9 +750,12 @@ export const OUTPUT_FORMATS: Record<OutputFormatId, OutputFormat> = {
   },
 };
 
+// HTML lives at index 0 - it's the "recommended" showcase format.
+// First-time users seeing HTML output understand Prompt Dolphin's value instantly.
 export const OUTPUT_FORMAT_ORDER: OutputFormatId[] = [
+  'html',
   'text', 'markdown', 'email', 'word', 'pdf_1pager', 'research_report',
-  'powerpoint', 'html',
+  'powerpoint',
   'excel', 'csv', 'power_bi', 'json',
 ];
 
