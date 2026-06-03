@@ -94,6 +94,7 @@ export default function Home() {
   // Language
   const [lang, setLang] = useState<LangId>("en");
   const [langOpen, setLangOpen] = useState(false);
+  const [langSearch, setLangSearch] = useState("");
   // Educational format section toggle
   const [formatsOpen, setFormatsOpen] = useState(false);
   // Hero image — random per visit (Unsplash CC0 + local fallback)
@@ -393,11 +394,17 @@ export default function Home() {
         )}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F35]/90 via-[#0A1F35]/60 to-[#0A1F35]/20 pointer-events-none" />
 
-        {/* Language picker — top right corner */}
-        <div className={`absolute top-3 sm:top-4 md:top-5 ${dir === 'rtl' ? 'left-3 sm:left-4 md:left-6' : 'right-3 sm:right-4 md:right-6'} z-20`}>
+        {/* Language picker — top right corner. Wrapper uses `fixed` so the
+            dropdown escapes the hero `overflow-hidden` clip. Without this,
+            the menu was clipped at the hero bottom and appeared "cut off". */}
+        <div className={`fixed top-3 sm:top-4 md:top-5 ${dir === 'rtl' ? 'left-3 sm:left-4 md:left-6' : 'right-3 sm:right-4 md:right-6'} z-50`}>
           <div className="relative">
             <button
-              onClick={() => setLangOpen(!langOpen)}
+              onClick={() => {
+                const next = !langOpen;
+                setLangOpen(next);
+                if (!next) setLangSearch("");
+              }}
               className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#0A1F35]/70 hover:bg-[#0A1F35]/90 backdrop-blur-sm text-[#F5F9FC] rounded-md text-xs font-semibold border border-[#F5F9FC]/20 transition-all"
               aria-label={T("lang_picker_label")}
               aria-expanded={langOpen}
@@ -407,43 +414,90 @@ export default function Home() {
               <span className="text-[#A67C3D] text-[10px]">▾</span>
             </button>
 
-            {langOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setLangOpen(false)}
-                  aria-hidden="true"
-                />
-                <ul
-                  className={`absolute top-full mt-1.5 ${dir === 'rtl' ? 'left-0' : 'right-0'} z-20 bg-[#0A1F35] border border-[#F5F9FC]/20 rounded-md shadow-xl min-w-[180px] max-h-[60vh] overflow-y-auto`}
-                  role="listbox"
-                  aria-label={T("lang_picker_label")}
-                >
-                  {LANGUAGE_ORDER.map((id) => {
-                    const meta = LANGUAGES[id];
-                    const active = id === lang;
+            {langOpen && (() => {
+              const q = langSearch.trim().toLowerCase();
+              const filtered = q.length === 0
+                ? LANGUAGE_ORDER
+                : LANGUAGE_ORDER.filter((id) => {
+                    const m = LANGUAGES[id];
                     return (
-                      <li key={id}>
-                        <button
-                          onClick={() => { setLang(id); setLangOpen(false); }}
-                          role="option"
-                          aria-selected={active}
-                          className={`flex items-center gap-2 w-full px-3 py-2 text-xs text-start transition-colors ${
-                            active
-                              ? "bg-[#143352] text-[#A67C3D] font-semibold"
-                              : "text-[#F5F9FC] hover:bg-[#143352]/60"
-                          }`}
-                        >
-                          <span className="text-base leading-none">{meta.flag}</span>
-                          <span className="flex-1">{meta.native}</span>
-                          {active && <span className="text-[#A67C3D]">✓</span>}
-                        </button>
-                      </li>
+                      id.toLowerCase().includes(q) ||
+                      m.label.toLowerCase().includes(q) ||
+                      m.native.toLowerCase().includes(q)
                     );
-                  })}
-                </ul>
-              </>
-            )}
+                  });
+              return (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => { setLangOpen(false); setLangSearch(""); }}
+                    aria-hidden="true"
+                  />
+                  <div
+                    className={`absolute top-full mt-1.5 ${dir === 'rtl' ? 'left-0' : 'right-0'} z-50 bg-[#0A1F35] border border-[#F5F9FC]/20 rounded-md shadow-xl min-w-[220px] flex flex-col`}
+                    style={{ maxHeight: 'min(70vh, 480px)' }}
+                  >
+                    {/* Search input — sticky at top, NOT inside scrollable list */}
+                    <div className="p-2 border-b border-[#F5F9FC]/10 flex-shrink-0">
+                      <input
+                        type="text"
+                        value={langSearch}
+                        onChange={(e) => setLangSearch(e.target.value)}
+                        placeholder="Search…"
+                        autoFocus
+                        className="w-full px-2 py-1.5 bg-[#143352] border border-[#F5F9FC]/15 rounded text-xs text-[#F5F9FC] placeholder-[#F5F9FC]/40 focus:outline-none focus:border-[#A67C3D]/60"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setLangOpen(false);
+                            setLangSearch("");
+                          } else if (e.key === 'Enter' && filtered.length > 0) {
+                            setLang(filtered[0]);
+                            setLangOpen(false);
+                            setLangSearch("");
+                          }
+                        }}
+                      />
+                    </div>
+                    {/* Scrollable list */}
+                    <ul
+                      className="overflow-y-auto flex-1"
+                      role="listbox"
+                      aria-label={T("lang_picker_label")}
+                    >
+                      {filtered.length === 0 ? (
+                        <li className="px-3 py-2 text-xs text-[#F5F9FC]/50 italic">No language matches</li>
+                      ) : filtered.map((id) => {
+                        const meta = LANGUAGES[id];
+                        const active = id === lang;
+                        return (
+                          <li key={id}>
+                            <button
+                              onClick={() => {
+                                setLang(id);
+                                setLangOpen(false);
+                                setLangSearch("");
+                              }}
+                              role="option"
+                              aria-selected={active}
+                              className={`flex items-center gap-2 w-full px-3 py-2 text-xs text-start transition-colors ${
+                                active
+                                  ? "bg-[#143352] text-[#A67C3D] font-semibold"
+                                  : "text-[#F5F9FC] hover:bg-[#143352]/60"
+                              }`}
+                            >
+                              <span className="text-base leading-none">{meta.flag}</span>
+                              <span className="flex-1">{meta.native}</span>
+                              <span className="text-[#F5F9FC]/40 text-[10px]">{meta.label}</span>
+                              {active && <span className="text-[#A67C3D]">✓</span>}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
 
