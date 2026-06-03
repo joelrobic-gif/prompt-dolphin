@@ -13,12 +13,15 @@
  * inside the envelope as <example>...</example> blocks. Default n=1.
  */
 
-export const FEW_SHOT_BANK_VERSION = '1.0.0';
+import { detectDomains, exampleMatchesPrompt } from './domain-detect.js';
+
+export const FEW_SHOT_BANK_VERSION = '1.1.0';
 
 const EXAMPLES = Object.freeze({
   email: [
     {
       label: 'CFO burn-rate update (terse, single-ask)',
+      domains: ['finance', 'biotech'],
       text: `Subject: Q3 burn - $4.2M, 14mo runway, one ask
 
 Hi Sarah,
@@ -37,6 +40,7 @@ Joel`,
   strategy: [
     {
       label: 'Acquire vs partner decision memo (Sequoia-style)',
+      domains: ['finance', 'biotech'],
       text: `Question: should we acquire CompanyX or partner via licensing?
 
 Answer in three sentences: acquire. Their RWE pipeline doubles our addressable indications inside 18 months; partnering caps our upside at the data layer when the IP arbitrage sits in the predictive model. The $42M-$55M sticker is 4x revenue but 1.4x our weighted-NPV of organic build, and the integration risk is bounded because their 6-person ML team is already remote-first.
@@ -55,6 +59,7 @@ Top three risks: (1) regulator (FTC) review under Hart-Scott-Rodino - low becaus
   meeting: [
     {
       label: 'Board prep for Series B (chief of staff)',
+      domains: ['finance', 'biotech'],
       text: `Objective: secure approval for $40M Series B at $180M pre, leading existing investors + one strategic.
 
 Background (3):
@@ -76,6 +81,7 @@ Pre-read: term sheet comp table (3pp), runway model w/ 3 scenarios (1pp), data-r
   slides: [
     {
       label: 'Insight-titled board update (Minto, slide outline)',
+      domains: ['biotech', 'finance'],
       text: `[SLIDE 1 - Lead asset cleared IND-enabling tox; 6-mo runway recovered]
 - Tox readout +3 weeks ahead of plan; no DLTs at all dose levels
 - FDA pre-IND meeting scheduled for next month
@@ -98,6 +104,7 @@ Pre-read: term sheet comp table (3pp), runway model w/ 3 scenarios (1pp), data-r
   research: [
     {
       label: 'Competitive landscape synthesis (Stratechery-style)',
+      domains: ['biotech'],
       text: `Key findings:
 1. mRNA platforms have bifurcated into two product strategies: (a) prophylactic vaccines as cash-flow business; (b) personalized cancer vaccines as the long-cycle bet. Both Pfizer/BioNTech and Moderna are running this playbook; CureVac is the outlier optimizing for self-amplifying constructs.
 2. The next 18 months are defined by manufacturing economics, not biology. Lipid-nanoparticle yield improvements (30-40% reported by Acuitas, 50%+ projected by Genevant) compress per-dose COGS from $4 to $2.40. This shifts personalized-cancer-vaccine economics from infeasible to gross-margin-positive.
@@ -121,6 +128,7 @@ Open questions:
   regulatory: [
     {
       label: 'FDA pre-IND meeting briefing (formal)',
+      domains: ['biotech', 'regulatory'],
       text: `MEETING REQUEST: Pre-IND Type B
 Sponsor: [Company]
 Product: [Antibody candidate]
@@ -150,6 +158,7 @@ Sponsor will incorporate all Agency feedback into the IND submission, planned fo
   investor: [
     {
       label: 'Q3 update - pipeline + cash, candid (no hype)',
+      domains: ['biotech', 'finance'],
       text: `Q3 investor update
 
 Pipeline progress:
@@ -178,6 +187,7 @@ Forward-looking statements: any statements above regarding IND timing, pre-IND o
   html_news_report: [
     {
       label: 'Bloomberg-style brief (HTML fragment, scannable)',
+      domains: ['tech'],
       text: `<!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><title>Weekly: AI-agent infrastructure</title>
@@ -217,6 +227,7 @@ Forward-looking statements: any statements above regarding IND timing, pre-IND o
   general: [
     {
       label: 'Concept explainer (CAP theorem-style, concrete)',
+      domains: ['tech'],
       text: `Direct answer: in any distributed data store you can guarantee at most two of three properties simultaneously - Consistency, Availability, Partition tolerance.
 
 Reasoning: when a network partition splits the system into two halves that cannot communicate, every node has to make a local choice. It can either (a) refuse writes to preserve consistency and lose availability, or (b) accept writes optimistically and reconcile later, trading consistency for availability. Partition tolerance is not optional in practice (networks fail), so the real choice in any production system is C-vs-A under partition.
@@ -230,20 +241,252 @@ Concrete next steps:
 });
 
 /**
- * Pick N few-shot examples for an archetype. Returns array of {label, text}.
- * Falls back to 'general' if archetype unknown. n defaults to 1 (cost discipline).
+ * Domain-neutral structural-only examples. One per archetype. These
+ * carry NO concrete domain content (no proper nouns, no industry-specific
+ * terms) - only structural patterns. Used as fallback when no
+ * domain-matching example exists for the prompt.
  */
-export function pickExamples(archetype, n = 1) {
+const NEUTRAL_EXAMPLES = Object.freeze({
+  email: [{
+    label: 'Generic single-ask email (structural)',
+    domains: [],
+    text: `Subject: [TOPIC] - [BOTTOM LINE] - one ask
+
+Hi [NAME],
+
+[ONE-SENTENCE CONTEXT].
+
+[ONE-SENTENCE NUMERIC FRAMING with concrete numbers].
+
+[ONE-SENTENCE STAKE: why this matters now].
+
+Ask: please [SPECIFIC ACTION] by [DATE] so we can [DOWNSTREAM EFFECT].
+
+Thanks,
+[SIGNATURE]`,
+  }],
+  strategy: [{
+    label: 'Generic options memo (structural)',
+    domains: [],
+    text: `Question: should we [OPTION A] or [OPTION B]?
+
+Answer in three sentences: [BOTTOM LINE]. [DEFENSE 1 with concrete number]. [DEFENSE 2 with mechanism].
+
+Three options considered:
+1. [OPTION A] ([COST], [TIMELINE], [UPSIDE/DOWNSIDE]).
+2. [OPTION B] ([COST], [TIMELINE], [UPSIDE/DOWNSIDE]).
+3. [OPTION C - DO NOTHING / ALTERNATIVE] ([COST], [TIMELINE], [UPSIDE/DOWNSIDE]).
+
+Recommended: option [N]. Defensible because (a) [REASON 1], (b) [REASON 2], (c) [REASON 3].
+
+Top three risks: (1) [RISK 1] - [MITIGATION]; (2) [RISK 2] - [MITIGATION]; (3) [RISK 3] - [MITIGATION].`,
+  }],
+  meeting: [{
+    label: 'Generic meeting prep (structural)',
+    domains: [],
+    text: `Objective: [WHAT THIS MEETING MUST DECIDE].
+
+Background (3):
+- [FACT 1 with number]
+- [FACT 2 with number]
+- [FACT 3 with timing]
+
+Key questions to resolve:
+1. [BINARY DECISION 1]?
+2. [BINARY DECISION 2]?
+3. [BINARY DECISION 3]?
+
+Decision framework: [HOW DECISIONS WILL BE TAKEN].
+
+Pre-read: [LIST OF DOCS NEEDED BEFORE MEETING].`,
+  }],
+  slides: [{
+    label: 'Generic insight-titled slides (structural)',
+    domains: [],
+    text: `[SLIDE 1 - [INSIGHT 1 stated as headline]]
+- [SUPPORTING POINT 1]
+- [SUPPORTING POINT 2]
+- [SUPPORTING POINT 3]
+[SPEAKER NOTES: 2 sentences anchoring why this slide matters]
+
+[SLIDE 2 - [INSIGHT 2 stated as headline]]
+- [SUPPORTING POINT 1]
+- [SUPPORTING POINT 2]
+- [SUPPORTING POINT 3]
+[SPEAKER NOTES: bridge to next decision]
+
+[SLIDE 3 - [DECISION asked for as headline]]
+- [WHAT WE WANT FROM THIS AUDIENCE]
+- [SUPPORTING EVIDENCE]
+- [TIMELINE / NEXT STEP]`,
+  }],
+  research: [{
+    label: 'Generic synthesis (structural)',
+    domains: [],
+    text: `Key findings:
+1. [FINDING 1 stated as claim with named entities and numbers].
+2. [FINDING 2 stated as claim with mechanism explained].
+3. [FINDING 3 stated as claim with implication].
+
+Evidence per finding:
+- (1) Source: [PUBLISHER + DATE].
+- (2) Sources: [PUBLISHER + DATE], [PUBLISHER + DATE].
+- (3) Sources: [PUBLISHER + DATE].
+
+Implications:
+- For [STAKEHOLDER A]: [ACTIONABLE IMPLICATION].
+- For [STAKEHOLDER B]: [ACTIONABLE IMPLICATION].
+
+Open questions:
+- [QUESTION 1] ([PROBABILITY / IMPACT estimate]).
+- [QUESTION 2] ([PROBABILITY / IMPACT estimate]).`,
+  }],
+  regulatory: [{
+    label: 'Generic regulatory briefing (structural)',
+    domains: [],
+    text: `MEETING REQUEST: [AGENCY] [PROCEDURE TYPE]
+Sponsor: [COMPANY]
+Product: [PRODUCT]
+Reference: [REGULATION CITATION + GUIDANCE TITLE]
+
+Specific questions for the Agency:
+1. Does [AGENCY] concur with [SPONSOR PROPOSED APPROACH 1] in the attached [SECTION REF]?
+2. Does [AGENCY] concur with [SPONSOR PROPOSED APPROACH 2 - specific numeric parameter]?
+3. Does [AGENCY] have feedback on [SPECIFIC TOPIC]?
+
+Required data attachments: [LIST]
+
+Assumptions flagged: [LIST WITH FALLBACK PROVISIONS]
+
+Sponsor will incorporate Agency feedback into the [FILING TYPE] submission, planned for [DATE].`,
+  }],
+  investor: [{
+    label: 'Generic investor update (structural)',
+    domains: [],
+    text: `[PERIOD] investor update
+
+Progress:
+- [MILESTONE 1 status with date]
+- [MILESTONE 2 status with date]
+
+Upcoming catalysts:
+- [CATALYST 1]: [DATE]
+- [CATALYST 2]: [DATE]
+- [CATALYST 3]: [DATE]
+
+Financial position:
+- Cash and equivalents: [AMOUNT] as of [DATE].
+- [PERIOD] spend: [AMOUNT] (vs [BUDGET]).
+- Runway: [N] months at current spend.
+
+Candid outlook:
+- [HONEST READ ON BIGGEST QUESTION facing the company].
+- [TOP RISK and what we are doing about it].
+
+Forward-looking statements: [LEGAL DISCLAIMER].`,
+  }],
+  html_news_report: [{
+    label: 'Generic HTML brief skeleton (structural)',
+    domains: [],
+    text: `<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>[TOPIC] - [PUBLICATION CADENCE]</title>
+<style>body{font-family:system-ui,-apple-system,sans-serif;max-width:760px;margin:auto;padding:24px;color:#0f172a;line-height:1.6}h1{font-size:34px;margin:0 0 8px}h2{font-size:24px;margin:24px 0 8px}.dek{font-size:18px;color:#475569}.tldr{background:#f1f5f9;border-left:3px solid #0f172a;padding:12px 16px;margin:16px 0}article{padding:16px 0;border-bottom:1px solid rgba(15,23,42,.1)}.sources{font-size:13px;color:#64748b}a{color:#0f172a}</style>
+</head>
+<body>
+<header>
+  <h1>[HEADLINE]</h1>
+  <p class="dek">[ONE-SENTENCE DEK]</p>
+  <p>As of [DATE] - sources cited inline.</p>
+  <div class="tldr">[30-WORD TLDR with named entities and numbers]</div>
+</header>
+<main>
+<article>
+  <h2>[STORY 1 HEADLINE]</h2>
+  <p>[2-PARAGRAPH SYNOPSIS with inline citation links to sources].</p>
+  <p>Significance: [WHY THIS MATTERS].</p>
+</article>
+<article>
+  <h2>[STORY 2 HEADLINE]</h2>
+  <p>[2-PARAGRAPH SYNOPSIS].</p>
+  <p>Significance: [WHY THIS MATTERS].</p>
+</article>
+</main>
+<footer>
+  <p>Published [DATE]. Compiled from public sources.</p>
+  <ol class="sources">
+    <li>[SOURCE 1 with URL]</li>
+    <li>[SOURCE 2 with URL]</li>
+    <li>[SOURCE 3 with URL]</li>
+  </ol>
+</footer>
+</body>
+</html>`,
+  }],
+  general: [{
+    label: 'Generic concept explainer (structural)',
+    domains: [],
+    text: `Direct answer: [ONE-SENTENCE BOTTOM LINE].
+
+Reasoning: [ONE PARAGRAPH connecting cause to effect with concrete example].
+
+Concrete next steps:
+- For [CASE A]: [SPECIFIC ACTION].
+- For [CASE B]: [SPECIFIC ACTION].
+- Before picking, [DUE DILIGENCE STEP].`,
+  }],
+});
+
+/**
+ * Pick N few-shot examples for an archetype, filtered by promptDomains.
+ * If no domain-tagged example matches, falls back to neutral structural
+ * template. If neither domain-tagged nor neutral exists for the archetype,
+ * returns empty array (caller should omit examples block entirely).
+ *
+ * @param {string} archetype
+ * @param {number} n - examples to return (default 1)
+ * @param {object} [opts]
+ * @param {string[]} [opts.promptDomains] - domains detected from prompt
+ * @param {string} [opts.promptText] - if provided + promptDomains absent, detects internally
+ * @returns {Array<{label: string, domains: string[], text: string}>}
+ */
+export function pickExamples(archetype, n = 1, opts = {}) {
+  if (n <= 0) return [];
+  let promptDomains = opts.promptDomains;
+  if (!promptDomains && opts.promptText) {
+    promptDomains = detectDomains(opts.promptText);
+  }
   const pool = EXAMPLES[archetype] || EXAMPLES.general;
-  return pool.slice(0, Math.max(0, n));
+
+  // Filter to examples whose domains overlap prompt domains.
+  // If promptDomains is empty (no signal), DON'T pass tagged-domain examples
+  // through - that's the bug we are fixing (biotech leaking into retail).
+  // Instead use neutral fallback when no clear domain match.
+  let filtered;
+  if (Array.isArray(promptDomains) && promptDomains.length > 0) {
+    filtered = pool.filter((ex) => exampleMatchesPrompt(ex.domains, promptDomains));
+  } else {
+    filtered = [];
+  }
+
+  if (filtered.length === 0) {
+    // Fall back to neutral structural-only example for this archetype.
+    const neutral = NEUTRAL_EXAMPLES[archetype] || NEUTRAL_EXAMPLES.general;
+    return neutral.slice(0, Math.max(0, n));
+  }
+  return filtered.slice(0, Math.max(0, n));
 }
 
 /**
  * Render examples as XML <example> blocks for envelope injection.
  * Returns empty string if n=0 or no examples available.
+ *
+ * @param {string} archetype
+ * @param {number} n
+ * @param {object} [opts] - forwarded to pickExamples
  */
-export function renderExamplesXml(archetype, n = 1) {
-  const picked = pickExamples(archetype, n);
+export function renderExamplesXml(archetype, n = 1, opts = {}) {
+  const picked = pickExamples(archetype, n, opts);
   if (picked.length === 0) return '';
   return picked.map((ex) => `<example>\n<!-- ${ex.label} -->\n${ex.text}\n</example>`).join('\n\n');
 }

@@ -27,6 +27,7 @@
 
 import { resolveBrand, NEUTRAL_BRAND } from './brand/tokens.js';
 import { renderExamplesXml } from './few-shot/examples-bank.js';
+import { detectDomains } from './few-shot/domain-detect.js';
 import { getRefinementDirective, recommendRefinement } from './directives/refinement.js';
 import { shapeFor, detectProviderFromModel } from './providers/shape-variants.js';
 
@@ -308,7 +309,7 @@ export const VALID_ARCHETYPES = Object.freeze(Object.keys(ARCHETYPES));
  * Build a portable XML-tagged prompt envelope.
  * Same shape as PromptDolphin's claude adapter (most portable across providers).
  */
-function buildEnvelope({ task, archetype, connector, outputFormat, reviewMode, depth, richMedia, brand, fewShot, refinement, provider }) {
+function buildEnvelope({ task, archetype, connector, outputFormat, reviewMode, depth, richMedia, brand, fewShot, refinement, provider, promptDomains }) {
   const parts = ARCHETYPES[archetype] || ARCHETYPES.general;
   const { role, context: baseContext, format: baseFormat, constraints, critique } = parts;
 
@@ -327,7 +328,11 @@ function buildEnvelope({ task, archetype, connector, outputFormat, reviewMode, d
     : constraints;
   const suffix = [REVIEW_MODES[reviewMode], RICH_MEDIA[richMedia]].filter(Boolean).join('\n\n');
 
-  const examplesXml = fewShot && fewShot > 0 ? renderExamplesXml(archetype, fewShot) : '';
+  // Domain-aware example picking - promptDomains arrives via fn args
+  // (detected in engineer() scope where options + taskStr live).
+  const examplesXml = fewShot && fewShot > 0
+    ? renderExamplesXml(archetype, fewShot, { promptDomains: promptDomains || [] })
+    : '';
   const refinementText = getRefinementDirective(refinement);
 
   const renderer = shapeFor(provider);
@@ -445,6 +450,12 @@ export function engineer(task, options = {}) {
     || detectProviderFromModel(options.model)
     || 'claude';
 
+  // Domain detection - fixes biotech-leaks-into-retail bug. Caller may
+  // override with explicit options.domains array; otherwise auto-detect.
+  const promptDomains = Array.isArray(options.domains) && options.domains.length
+    ? options.domains
+    : detectDomains(taskStr);
+
   const enhanced = buildEnvelope({
     task: taskStr,
     ...resolved,
@@ -452,6 +463,7 @@ export function engineer(task, options = {}) {
     fewShot,
     refinement,
     provider,
+    promptDomains,
   });
 
   const techniques = ['role-priming', 'context-framing', 'explicit-format', 'do-not-list', 'self-critique-check'];
@@ -482,10 +494,11 @@ export function engineer(task, options = {}) {
       fewShot,
       refinement,
       provider,
+      promptDomains,
     },
     techniques_used: techniques,
     original_issues: issues,
   };
 }
 
-export const DOLPHIN_ENGINE_VERSION = '2.1.0';
+export const DOLPHIN_ENGINE_VERSION = '2.2.0';

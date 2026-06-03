@@ -460,7 +460,13 @@ export function retrieveExamples(task: string, archetypeId: ArchetypeId, n = 2):
   if (!bank.length) return [];
   const scored = bank.map((ex) => ({ ex, score: lexicalScore(task, ex) }));
   scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, n).map((s) => s.ex);
+  // GUARD: if the best example has zero lexical overlap with the task,
+  // every example in the bank is domain-irrelevant. Returning anything
+  // here injects unrelated-domain content (e.g. GLP-1 biotech example
+  // bleeding into a retail viral-marketing prompt). Drop the block.
+  if (scored[0].score === 0) return [];
+  // Only return examples with non-zero overlap (filters tail noise).
+  return scored.slice(0, n).filter((s) => s.score > 0).map((s) => s.ex);
 }
 
 // ============================================================================
