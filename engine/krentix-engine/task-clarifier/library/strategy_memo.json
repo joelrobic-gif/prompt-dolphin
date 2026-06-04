@@ -1,0 +1,17 @@
+{
+  "archetype": "strategy_memo",
+  "version": "1.0.0",
+  "researched_from": [
+    "Amazon 6-page narrative memo standard (Jeff Bezos)",
+    "McKinsey Pyramid Principle (Barbara Minto)",
+    "Sequoia 'Writing a Business Plan' framework",
+    "Stripe Atlas decision-memo template",
+    "HBR - The Discipline of Business Experimentation"
+  ],
+  "clarified_task_template": "Produce a decision-grade strategy memo following industry best practice. Format: (1) ONE-sentence question this memo answers; (2) ONE-sentence recommendation (answer-first, Minto pyramid); (3) THREE-sentence rationale (the case in 3 lines a reader could repeat); (4) options considered (3-5, each w/ description, cost, timeline, upside, downside, NPV or weighted-NPV if quantifiable); (5) recommended option highlighted w/ defense (3 reasons); (6) top-3 risks + mitigations; (7) what would change my mind (1-3 falsifiable conditions); (8) recommended next step + owner + decision-by date. Answer-first throughout. Every claim cited or labeled as assumption. No hedging without substance. Defensible by a partner-level reviewer.",
+  "required_sections": ["question_one_sentence","recommendation_one_sentence","three_sentence_rationale","options_considered","recommended_option_defense","top_3_risks_mitigations","what_changes_my_mind","next_step"],
+  "voice_rules": ["answer-first (Minto pyramid)","specific numbers, named entities, defensible mechanisms","no hedging without substance","label every claim as fact / assumption / opinion","active voice, declarative"],
+  "length_targets": { "words": "800-1500", "read_time": "3-5 min" },
+  "must_haves": ["question + recommendation in first 2 sentences","3+ options scored","top-3 risks w/ mitigations","what-would-change-my-mind (falsifiable)","next-step w/ owner + date"],
+  "must_avoid": ["recommendation buried in conclusion","options described without scoring","hedging without substance","unlabeled assumptions","missing falsifiability"]
+}

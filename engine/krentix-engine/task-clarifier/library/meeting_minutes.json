@@ -1,0 +1,76 @@
+{
+  "archetype": "meeting_minutes",
+  "version": "1.0.0",
+  "researched_from": [
+    "Robert's Rules of Order (Newly Revised, 12th ed.)",
+    "BoardSource: The Source - Twelve Principles of Governance",
+    "ASAE corporate-governance minute-taking standards",
+    "McKinsey operations-cadence playbook (chief-of-staff guidance)",
+    "Atlassian + Notion meeting-template canon",
+    "Microsoft Loop + Planner action-item structuring"
+  ],
+  "clarified_task_template": "Produce executive meeting minutes from the attached transcript following industry best practice. Past tense, neutral voice, paraphrased (not verbatim). Output must include in order: (1) header block w/ title, date, start-end, duration, type, quorum status; (2) attendees split into present (in-person vs remote), absent/excused, guests, chair, minute-taker; (3) ONE-paragraph executive TLDR stating what was achieved + most material outcome (1-3 sentences max); (4) TOP-3 RANKED key actions - the 3 highest-impact items, each w/ action verb, named owner, explicit due date, priority; (5) decisions taken (separate from actions - decisions are immutable record of what was settled, format 'Body approved X', include vote count if applicable, effective date); (6) full action-items table w/ columns Action | Owner | Due | Status | Notes; (7) discussion summary by agenda item (2-3 neutral sentences each); (8) risks / parking-lot raised but deferred; (9) next meeting date + agenda preview; (10) source attribution line. Confidentiality classification at top if material. Every owner + due date must come from the transcript verbatim or be marked '[TBD - verify with attendees]'. Never invent attendees, statements, decisions, owners, or dates.",
+  "required_sections": [
+    "header", "attendees", "tldr", "top_3_key_actions", "decisions",
+    "action_items_full", "discussion_summary", "parking_lot", "next_meeting", "source_attribution"
+  ],
+  "schema_detail": {
+    "header": { "fields": ["title","date","start_time","end_time","duration","meeting_type","quorum_status_if_board"] },
+    "attendees": { "subgroups": ["present_in_person","present_remote","absent_excused","guests_observers","chair","minute_taker"] },
+    "tldr": { "length": "1-3 sentences max", "voice": "past tense, neutral" },
+    "top_3_key_actions": { "count": 3, "ranking_criterion": "impact x urgency", "per_item": ["action_verb_phrase","named_owner","explicit_due_date","priority_high_med_low"] },
+    "decisions": { "format": "bulleted list", "voice": "active (e.g. Board approved budget reforecast)", "include_if_applicable": ["vote_count","effective_date","dissenters"] },
+    "action_items_full": { "format": "table", "columns": ["Action","Owner","Due","Status","Notes"], "owner_rule": "named person from transcript or [TBD - verify with attendees]", "due_rule": "explicit date or [TBD], never ASAP/soon/later", "status_values": ["Open","In Progress","Blocked","Done"] },
+    "discussion_summary": { "per_agenda_item": "2-3 neutral past-tense sentences" },
+    "parking_lot": { "format": "bulleted list w/ context" },
+    "next_meeting": { "fields": ["date","agenda_preview"] }
+  },
+  "voice_rules": [
+    "past tense throughout",
+    "neutral voice - no minute-taker opinions",
+    "decisions in active voice (Board approved X)",
+    "actions in imperative voice w/ explicit owner",
+    "paraphrase - do not transcribe verbatim",
+    "quote only material statements w/ attribution"
+  ],
+  "length_targets_by_meeting_type": {
+    "exec_staff_meeting": { "words": "300-500", "read_time": "<2 min" },
+    "board_meeting": { "words": "800-2000", "read_time": "<5 min" },
+    "operational_standup": { "words": "150-300", "read_time": "<1 min" },
+    "all_hands": { "words": "400-800", "read_time": "<3 min" },
+    "one_on_one": { "words": "150-250", "read_time": "<1 min" },
+    "project_review": { "words": "400-700", "read_time": "<3 min" }
+  },
+  "must_haves": [
+    "every action has a named owner OR [TBD - verify with attendees]",
+    "every action has an explicit due date OR [TBD], never ASAP/soon",
+    "decisions separated from actions",
+    "top-3 ranked actions distinct from full action-items table",
+    "confidentiality classification at top if material"
+  ],
+  "must_avoid": [
+    "magazine-style layout - hero blocks, dek, pull-quotes, sparklines",
+    "fabricated names, statements, decisions, action items, owners, dates",
+    "verbatim transcription of long passages",
+    "minute-taker opinions or editorial commentary",
+    "vague due dates (ASAP/soon/later/eventually)",
+    "burying decisions inside action items",
+    "padding to hit a word count"
+  ],
+  "red_team_checklist": [
+    "Is every attendee actually in the transcript?",
+    "Is every action item supported by a verbatim transcript quote?",
+    "Is every owner + due date either explicit in transcript or marked [TBD]?",
+    "Are decisions separated from actions?",
+    "Is the top-3 ranking defensible (highest-impact, not most-recent)?",
+    "Would this minutes pass a board chair's read in 2 minutes?",
+    "Is past tense + neutral voice maintained throughout?",
+    "Does the parking lot capture every deferred item?"
+  ],
+  "output_format_recommendations": {
+    "default": "minimal HTML w/ tables, NOT magazine-grade editorial",
+    "html_structure": "header > attendees > tldr > top-3 (h2) > decisions (h2) > action items (table) > discussion (h2) > parking (h2) > next meeting (footer)",
+    "no_decoration": "no hero, no dek, no pull-quotes, no sparklines, no font-features beyond tabular-nums",
+    "print_friendly": "@media print stylesheet, page-break-inside avoid on tables"
+  }
+}

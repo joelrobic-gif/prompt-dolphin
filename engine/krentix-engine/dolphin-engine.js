@@ -29,6 +29,7 @@ import { resolveBrand, NEUTRAL_BRAND } from './brand/tokens.js';
 import { renderExamplesXml } from './few-shot/examples-bank.js';
 import { detectDomains } from './few-shot/domain-detect.js';
 import { renderCapabilityRouting, renderCapabilityRoutingCompact } from './capabilities/capability-routing.js';
+import { clarifyTaskSync, renderClarifiedTask } from './task-clarifier/clarifier.js';
 import { getRefinementDirective, recommendRefinement } from './directives/refinement.js';
 import { shapeFor, detectProviderFromModel } from './providers/shape-variants.js';
 
@@ -346,7 +347,7 @@ export const VALID_ARCHETYPES = Object.freeze(Object.keys(ARCHETYPES));
  * Build a portable XML-tagged prompt envelope.
  * Same shape as PromptDolphin's claude adapter (most portable across providers).
  */
-function buildEnvelope({ task, archetype, connector, outputFormat, reviewMode, depth, richMedia, brand, fewShot, refinement, provider, promptDomains, capabilityRouting, capabilityRuntimes, capabilityCompact }) {
+function buildEnvelope({ task, archetype, connector, outputFormat, reviewMode, depth, richMedia, brand, fewShot, refinement, provider, promptDomains, capabilityRouting, capabilityRuntimes, capabilityCompact, taskClarified }) {
   const parts = ARCHETYPES[archetype] || ARCHETYPES.general;
   const { role, context: baseContext, format: baseFormat, constraints, critique } = parts;
 
@@ -393,6 +394,7 @@ function buildEnvelope({ task, archetype, connector, outputFormat, reviewMode, d
     examples: examplesXml,
     refinement: refinementText,
     capabilities: capabilityText,
+    taskClarified: taskClarified || '',
     suffix,
     task,
   });
@@ -511,6 +513,16 @@ export function engineer(task, options = {}) {
   const capabilityRouting = options.capabilityRouting === undefined
     ? (taskStr.length >= 60 ? true : false)
     : options.capabilityRouting;
+
+  // Task clarification - L1 cache hit OR L2 seeded library. Sync only
+  // in engine fast path; caller wanting LLM research uses engineerAsync.
+  // Caller may disable with options.clarifyTask: false.
+  let taskClarification = null;
+  let taskClarifiedText = '';
+  if (options.clarifyTask !== false) {
+    taskClarification = clarifyTaskSync(taskStr, { archetype });
+    if (taskClarification) taskClarifiedText = renderClarifiedTask(taskClarification);
+  }
   const capabilityRuntimes = Array.isArray(options.capabilityRuntimes)
     ? options.capabilityRuntimes
     : null;
@@ -527,6 +539,7 @@ export function engineer(task, options = {}) {
     capabilityRouting,
     capabilityRuntimes,
     capabilityCompact,
+    taskClarified: taskClarifiedText,
   });
 
   const techniques = ['role-priming', 'context-framing', 'explicit-format', 'do-not-list', 'self-critique-check'];
@@ -559,10 +572,13 @@ export function engineer(task, options = {}) {
       provider,
       promptDomains,
       capabilityRouting,
+      taskClarification: taskClarification
+        ? { archetype: taskClarification.archetype, source: taskClarification.source, latencyMs: taskClarification.latencyMs }
+        : null,
     },
     techniques_used: techniques,
     original_issues: issues,
   };
 }
 
-export const DOLPHIN_ENGINE_VERSION = '2.4.0';
+export const DOLPHIN_ENGINE_VERSION = '2.5.0';

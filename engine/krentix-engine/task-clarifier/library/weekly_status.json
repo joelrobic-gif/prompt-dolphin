@@ -1,0 +1,16 @@
+{
+  "archetype": "weekly_status",
+  "version": "1.0.0",
+  "researched_from": [
+    "Andy Grove - High Output Management (operational reviews)",
+    "Will Larson - An Elegant Puzzle (engineering staff updates)",
+    "Stripe Atlas weekly-update template",
+    "Notion + Linear weekly-sync templates"
+  ],
+  "clarified_task_template": "Produce a weekly status update following industry best practice. Format: (1) period covered (date range, ISO); (2) ONE-line bottom-line of the week (red/yellow/green status + one sentence); (3) wins shipped this week (3-5 bullets w/ owner + impact); (4) misses / what slipped (3 bullets w/ owner + why + recovery plan); (5) key metrics table w/ this-week / last-week / 4-week-avg / target columns; (6) decisions needed this week from reader (bulleted, action verb, who decides, by when); (7) what we are doing next week (3 bullets). Use past tense for wins/misses, future tense for next-week. Numeric claims must cite source. Honest about red items.",
+  "required_sections": ["period_covered","bottom_line_status","wins","misses","key_metrics","decisions_needed","next_week"],
+  "voice_rules": ["honest - never paint red as yellow","specific metrics not vague 'good progress'","owner named on every win + miss","recovery plan attached to every miss","concrete numbers not adjectives"],
+  "length_targets": { "words": "300-500", "read_time": "<2 min" },
+  "must_haves": ["RAG status (red/yellow/green) at top","key-metrics table w/ trend columns","named owner on every win + miss","recovery plan attached to every miss","decisions-needed section if reader must act"],
+  "must_avoid": ["hype words (great/amazing/crushed)","padding to look productive","metrics without trend context","burying bad news"]
+}

@@ -1,0 +1,17 @@
+{
+  "archetype": "investor_update",
+  "version": "1.0.0",
+  "researched_from": [
+    "Sequoia 'The Founder-Investor Relationship' guidance",
+    "Mark Suster - Both Sides of the Table investor-update template",
+    "Y Combinator monthly investor update format",
+    "Brad Feld - Venture Deals investor-comms chapter",
+    "Stripe Atlas investor-update boilerplate"
+  ],
+  "clarified_task_template": "Produce a candid investor update following industry best practice. Lead w/ asks. Format: (1) headline number (one of: revenue, runway months, growth rate, key milestone); (2) THREE asks (each w/ specific intros / hires / advice + named investor if relevant); (3) wins (3-5 bullets w/ concrete metrics); (4) losses / what didn't work (2-3 bullets, honest, no spin); (5) key metrics table (revenue, customers, runway, burn, headcount - current vs last period vs target); (6) pipeline / next 60-90 days; (7) team changes (hires + departures); (8) cap table / financing status; (9) one ask doubled-down at the end. Candor over polish. Bad news as prominent as good. Specific asks, not generic. Numbers in tables not prose.",
+  "required_sections": ["headline_number","three_asks","wins","losses","key_metrics_table","pipeline_next_60_90","team_changes","financing_status","closing_ask"],
+  "voice_rules": ["candor over polish - never bury bad news","specific asks not generic","numbers in tables not prose","past tense for wins/losses, future for pipeline","forward-looking disclaimer at end"],
+  "length_targets": { "words": "500-1000", "read_time": "3 min" },
+  "must_haves": ["headline number in first line","3+ specific asks at top","losses section w/ honest content","metrics table w/ trend cols","financing status if material","forward-looking disclaimer"],
+  "must_avoid": ["hype words","buried bad news","generic asks","metrics in prose paragraphs","quarterly-vanity-only metrics"]
+}

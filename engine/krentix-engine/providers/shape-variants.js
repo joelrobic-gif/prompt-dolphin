@@ -21,10 +21,11 @@ export const SHAPE_VARIANTS_VERSION = '1.0.0';
 export const SUPPORTED_PROVIDERS = Object.freeze(['claude', 'gpt', 'gemini', 'generic']);
 
 function renderClaudeXml(parts) {
-  const { role, context, format, constraints, critique, examples, refinement, capabilities, suffix, task } = parts;
+  const { role, context, format, constraints, critique, examples, refinement, capabilities, taskClarified, suffix, task } = parts;
   return [
     `<role>\n${role}\n</role>`,
     `<context>\n${context}\n</context>`,
+    taskClarified && `<task_clarified>\n${taskClarified}\n</task_clarified>`,
     `<format>\n${format}\n</format>`,
     `<do_not>\n${constraints}\n</do_not>`,
     `<critique>\n${critique}\n</critique>`,
@@ -37,10 +38,11 @@ function renderClaudeXml(parts) {
 }
 
 function renderGptMarkdown(parts) {
-  const { role, context, format, constraints, critique, examples, refinement, capabilities, suffix, task } = parts;
+  const { role, context, format, constraints, critique, examples, refinement, capabilities, taskClarified, suffix, task } = parts;
   return [
     `**Role**\n${role}`,
     `**Context**\n${context}`,
+    taskClarified && `**Task clarified (best-practice schema)**\n${taskClarified}`,
     `**Output format**\n${format}`,
     `**Constraints (do NOT)**\n${constraints}`,
     `**Self-critique**\n${critique}`,
@@ -53,10 +55,11 @@ function renderGptMarkdown(parts) {
 }
 
 function renderGeminiConcise(parts) {
-  const { role, context, format, constraints, critique, examples, refinement, capabilities, suffix, task } = parts;
+  const { role, context, format, constraints, critique, examples, refinement, capabilities, taskClarified, suffix, task } = parts;
   return [
     `ROLE: ${role}`,
     `CONTEXT: ${context}`,
+    taskClarified && `TASK_CLARIFIED:\n${taskClarified}`,
     `FORMAT: ${format}`,
     `CONSTRAINTS: ${constraints}`,
     `CRITIQUE: ${critique}`,
