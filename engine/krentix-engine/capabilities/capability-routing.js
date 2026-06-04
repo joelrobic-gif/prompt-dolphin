@@ -19,24 +19,31 @@
  * Effect: removes the AI selector from the UI. One paste-anywhere prompt.
  */
 
-export const CAPABILITY_ROUTING_VERSION = '1.0.0';
+export const CAPABILITY_ROUTING_VERSION = '1.1.0';
 
 /**
  * Known LLM runtimes with their capability catalogs. The LLM reads these
  * and matches its own surface. We list the most commercially valuable
  * integrations first per runtime - users with Pro/Plus tiers benefit most.
+ *
+ * v1.1.0 expands shared-resource coverage: Copilot (+Whiteboard, Stream,
+ * Yammer/Viva Engage, Forms, Power Platform); Gemini (+Keep, Tasks,
+ * NotebookLM); Claude (named MCP integrations). New runtimes: notion_ai,
+ * slack_ai, zoom_ai, atlassian_rovo, salesforce_einstein, box_ai.
  */
 export const RUNTIME_BRANCHES = Object.freeze([
   {
     id: 'copilot',
-    matchHints: ['Microsoft Copilot', 'Copilot Pro', 'Microsoft 365 Copilot', 'M365 Copilot'],
+    matchHints: ['Microsoft Copilot', 'Copilot Pro', 'Microsoft 365 Copilot', 'M365 Copilot', 'Copilot for Business'],
     capabilities: [
-      'M365 Graph retrieval - search Outlook (last 90 days inbox, sent, calendar), Teams chats + meeting recordings + transcripts, SharePoint sites, OneDrive files, Loop pages, Planner tasks, To Do, OneNote notebooks.',
+      'M365 Graph retrieval - search Outlook (last 90 days inbox, sent, calendar), Teams chats + meeting recordings + transcripts + channel files, SharePoint sites + lists + libraries, OneDrive files, Loop pages + components, Planner tasks, To Do, OneNote notebooks, Whiteboard boards, Stream video library, Yammer / Viva Engage posts + communities, Forms surveys + responses, Lists records.',
       'Cite every retrieved item by name, author, and date. Format: [Filename - Owner - YYYY-MM-DD].',
       'Honor tenant Data Loss Prevention (DLP) policies and sensitivity labels. Surface labels alongside content.',
-      'Apply Purview compliance constraints to any retrieved content.',
-      'Use Loop components for collaborative output when target is shareable.',
-      'If task involves data, use Excel Copilot for computation or Power BI for visualization.',
+      'Apply Purview compliance constraints to any retrieved content. Respect retention + records-management policies.',
+      'Use Loop components for collaborative output when target is shareable. Use Loop Workspaces when output spans multiple pages.',
+      'If task involves data: Excel Copilot for computation, Power BI for visualization, Power Automate for workflow, Power Apps if building a tool, Power Query for transforms.',
+      'Viva Insights: pull productivity / collaboration / wellbeing signals when task involves team patterns.',
+      'Search across tenant via Microsoft Search API for cross-app retrieval.',
     ],
   },
   {
@@ -46,9 +53,10 @@ export const RUNTIME_BRANCHES = Object.freeze([
       'Project Knowledge: if files are attached to this Project, treat them as the authoritative source of truth. Cite by filename. Quote verbatim when relevant.',
       'Artifacts: if the deliverable is self-contained (a document, code file, HTML page, SVG, diagram), render it as an Artifact for iterative refinement.',
       'Web search: if web search is enabled in this conversation (Claude.ai Pro/Team/Enterprise), use it for any claim that depends on current information. Cite source URL + publication date.',
-      'MCP servers: if MCP servers are attached (Gmail, Drive, Slack, GitHub, Linear, Notion, custom), prefer them over web search for the corresponding data. Cite by source name.',
+      'MCP servers: if attached, prefer over web search for matching domains. Examples: Gmail (mail+attachments), Google Drive (docs+sheets+slides), Slack (channels+DMs+files), GitHub (repos+PRs+issues), Linear (issues+projects+cycles), Notion (pages+databases), Jira (issues+sprints), Confluence (pages+spaces), Asana (tasks+projects), Salesforce (accounts+opportunities), HubSpot (contacts+deals), Postgres / Supabase / BigQuery (queries), Stripe (customers+invoices), Sentry (issues+events), custom MCP servers. Cite by source name + record id.',
       'Computer use (if running via the API with computer-use beta): drive a real browser/desktop only when the task genuinely requires UI interaction.',
       'Tool use: if any tools are exposed, prefer tool calls over hallucinated reasoning. Chain tool calls in series for multi-step retrieval.',
+      'Connectors (Claude.ai connectors panel): if Gmail / Calendar / Drive / Linear / etc connectors are toggled on, retrieve through them rather than asking the user to paste.',
     ],
   },
   {
@@ -59,44 +67,118 @@ export const RUNTIME_BRANCHES = Object.freeze([
       'Browse: if web browsing is enabled, use it for any current-information claim. Cite source URL + date.',
       'Code Interpreter / Advanced Data Analysis: use for any computation, data transformation, file parsing, chart generation, or numeric analysis. Show the code you ran.',
       'Canvas: if the deliverable is over 200 words OR is a document/code artifact, render in Canvas mode for editing.',
-      'DALL-E: invoke for any image generation request inside the same response.',
+      'DALL-E / Sora: invoke for any image/video generation request inside the same response.',
       'Memory: if persistent memory is enabled, reference relevant past interactions when they materially inform the answer.',
-      'Connectors / GPTs: if connectors (Google Drive, OneDrive, Box, Dropbox, SharePoint, GitHub) are attached, use them as the source of truth.',
+      'Connectors (ChatGPT Connectors panel): if Google Drive, OneDrive, Box, Dropbox, SharePoint, GitHub, Outlook, Slack, Notion, Linear, Salesforce, HubSpot, Zendesk, Jira, Confluence, Snowflake, Tableau are attached, use them as the source of truth. Cite by source + record id.',
       'Structured Outputs: if output format is JSON, set response_format to json_schema for guaranteed parseable output.',
+      'Web Apps (where available): use ChatGPT app integrations (Booking.com, Expedia, Zillow, Wolfram, etc) when task aligns.',
     ],
   },
   {
     id: 'gemini',
-    matchHints: ['Google Gemini', 'Gemini Advanced', 'Gemini Pro', 'Gemini Ultra', 'Gemini for Workspace', 'AI Studio'],
+    matchHints: ['Google Gemini', 'Gemini Advanced', 'Gemini Pro', 'Gemini Ultra', 'Gemini for Workspace', 'AI Studio', 'NotebookLM'],
     capabilities: [
-      'Workspace extensions: if Workspace extensions are enabled (Gmail, Drive, Docs, Sheets, Slides, Calendar, Meet, Maps, YouTube, Flights, Hotels), use them for any task that touches that data. Cite by item name + date.',
+      'Workspace extensions: if Workspace extensions are enabled (Gmail, Drive, Docs, Sheets, Slides, Calendar, Meet, Maps, YouTube, Flights, Hotels, Keep notes, Tasks lists, Chat spaces, Sites pages), use them for any task touching that data. Cite by item name + date.',
       'Google Search grounding: enable for any claim that requires current information. Cite source URLs.',
       'Long context: prefer pasting full source material into the prompt over summarizing - Gemini 1M-token context tolerates it.',
       'Multimodal: process attached images, audio, video, PDFs directly. Reference visual elements specifically.',
       'Code execution: use for any computation, data transformation, or chart generation.',
       'Structured output: use responseSchema to enforce JSON structure when output format is JSON.',
       'Deep Research mode: if available, invoke for any research synthesis task requiring 10+ sources.',
+      'NotebookLM (if running there): treat sources panel as ONLY authoritative knowledge; cite every claim back to source by document name + page.',
+      'Imagen / Veo: invoke for image/video generation inside response.',
     ],
   },
   {
     id: 'grok',
-    matchHints: ['xAI', 'Grok', 'Grok-3', 'Grok-4', 'X Premium', 'X Premium+'],
+    matchHints: ['xAI', 'Grok', 'Grok-3', 'Grok-4', 'X Premium', 'X Premium+', 'SuperGrok'],
     capabilities: [
       'X (Twitter) real-time search: use for current-events, trending topics, breaking news, sentiment analysis, public-figure statements. Cite tweets by handle + timestamp.',
       'X user lookups: cite handles by current display name, account age, follower count when relevant.',
       'Image generation (Aurora / FLUX): inline image generation for any visual request.',
       'Code execution: use for computation and data transformation.',
       'Think mode: invoke for any task requiring multi-step reasoning across uncertain evidence.',
+      'DeepSearch: invoke for multi-hop web + X retrieval; show search trail.',
     ],
   },
   {
     id: 'perplexity',
-    matchHints: ['Perplexity', 'Perplexity Pro'],
+    matchHints: ['Perplexity', 'Perplexity Pro', 'Perplexity Enterprise', 'Comet'],
     capabilities: [
       'Live web search: every claim should be source-cited with publication and date.',
       'Pro Search: use multi-hop search for complex queries; show the search trail.',
-      'Focus modes: use Academic for scholarly claims, Finance for tickers, Reddit for community sentiment.',
+      'Focus modes: use Academic for scholarly claims, Finance for tickers, Reddit for community sentiment, Wolfram for math, YouTube for video transcripts.',
       'File upload: if files attached, treat as authoritative; cite by filename.',
+      'Spaces (Pro): if running inside a Perplexity Space, treat space documents + collaborators as authoritative scope.',
+    ],
+  },
+  {
+    id: 'notion_ai',
+    matchHints: ['Notion AI', 'Notion Q&A', 'Notion'],
+    capabilities: [
+      'Workspace search: retrieve from all pages, databases, comments accessible to the current user. Cite by page title + last-edited date.',
+      'Databases: query database properties + filter views. Use database relations to traverse linked records.',
+      'Q&A: when running in Notion Q&A, surface 5-10 relevant pages with snippets + always link back.',
+      'Page hierarchy: respect parent/child page structure when summarizing or organizing.',
+      'Honor workspace permissions: never surface a page the user does not have access to.',
+    ],
+  },
+  {
+    id: 'slack_ai',
+    matchHints: ['Slack AI', 'Slack', 'Slackbot'],
+    capabilities: [
+      'Channel search: retrieve threads, messages, files across channels the user is in. Cite by channel + thread timestamp.',
+      'Conversation summaries: condense long threads / channels into action-items + decisions + open questions.',
+      'Workflow Builder: if output is repeatable, suggest as a Workflow.',
+      'Canvas: render long-form output as a Slack Canvas (persistent doc inside channel) when appropriate.',
+      'Huddles transcript: pull from huddle recordings if available.',
+      'Honor channel privacy + DM boundaries; never quote a DM in a public channel summary.',
+    ],
+  },
+  {
+    id: 'zoom_ai',
+    matchHints: ['Zoom AI Companion', 'Zoom AI', 'Zoom IQ'],
+    capabilities: [
+      'Meeting summaries: pull from Zoom recording + transcript + chat. Cite by meeting title + ISO timestamp.',
+      'In-meeting Q&A: surface answers based on prior meeting context.',
+      'Smart Recordings: extract highlights + chapters + action items.',
+      'Team Chat search: retrieve from Zoom Team Chat channels.',
+      'Email + calendar (Zoom Mail/Cal): retrieve if user is on Zoom Workplace.',
+      'Whiteboard: pull from Zoom Whiteboard if discussion involved one.',
+    ],
+  },
+  {
+    id: 'atlassian_rovo',
+    matchHints: ['Atlassian Rovo', 'Rovo', 'Atlassian Intelligence', 'Confluence AI', 'Jira AI'],
+    capabilities: [
+      'Rovo Search: federated search across Confluence pages, Jira issues, Bitbucket repos, Trello boards, third-party integrations (Google Drive, SharePoint, GitHub, Microsoft Teams, Figma). Cite by source app + record id.',
+      'Confluence pages: retrieve by space, label, author, date. Cite by page title + space + version.',
+      'Jira issues: query by project, JQL, assignee, sprint, label. Cite by issue key.',
+      'Rovo Agents: invoke specialist agents for code-review / release-notes / decision-records when task matches.',
+      'Honor Atlassian Cloud permissions: never surface restricted content.',
+    ],
+  },
+  {
+    id: 'salesforce_einstein',
+    matchHints: ['Salesforce Einstein', 'Einstein', 'Einstein GPT', 'Agentforce', 'Salesforce AI'],
+    capabilities: [
+      'CRM retrieval: query Accounts, Opportunities, Leads, Contacts, Cases, Tasks, Events. Cite by Salesforce record id.',
+      'Knowledge articles: pull from Salesforce Knowledge base; cite by article id + version.',
+      'Data Cloud: query unified customer profiles + activation segments.',
+      'Flow Builder: if output is repeatable, suggest as a Flow.',
+      'Einstein Copilot Actions: invoke pre-built actions for case-routing / lead-scoring / forecast-summary when task matches.',
+      'Respect Salesforce sharing rules + field-level security; never surface restricted fields.',
+    ],
+  },
+  {
+    id: 'box_ai',
+    matchHints: ['Box AI', 'Box Hubs', 'Box'],
+    capabilities: [
+      'Box content search: query files + folders the user can access. Cite by Box file id + version.',
+      'Box Hubs: if running inside a Hub, treat hub contents as authoritative scope.',
+      'Multi-file Q&A: synthesize across selected files + cite per claim back to source file + page.',
+      'Metadata extraction: pull custom metadata templates when relevant.',
+      'Honor Box folder permissions + classifications; never surface a restricted file.',
     ],
   },
 ]);
