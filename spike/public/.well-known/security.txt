@@ -1,0 +1,8 @@
+# Security policy for promptdolphin.com — Robic Direct Inc.
+Contact: mailto:security@promptdolphin.com
+Expires: 2027-06-08T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://www.promptdolphin.com/.well-known/security.txt
+Policy: https://www.promptdolphin.com/trust
+# PromptDolphin runs entirely client-side. No prompt content is stored or transmitted.
+# Content-Security-Policy forbids all third-party connections. Open-source engine.
