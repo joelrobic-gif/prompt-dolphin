@@ -362,7 +362,7 @@ export default function Home() {
       {/* Hero (parallax) */}
       <section
         ref={heroImgRef}
-        className="relative w-full h-[40vh] min-h-[280px] sm:min-h-[320px] md:min-h-[360px] max-h-[480px] overflow-hidden"
+        className="relative w-full h-[60vh] min-h-[380px] sm:min-h-[420px] md:min-h-[480px] max-h-[720px] overflow-hidden"
       >
         <Image
           src={heroSrc}
