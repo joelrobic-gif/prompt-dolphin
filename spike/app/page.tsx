@@ -3,9 +3,6 @@ import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
 import {
   QUALITY_AXIS,
-  QUALITY_AXIS_ORDER,
-  ADAPTER_ORDER,
-  ADAPTERS,
   ARCHETYPES,
   OUTPUT_FORMATS,
   OUTPUT_FORMAT_ORDER,
@@ -13,6 +10,8 @@ import {
   type QualityId,
   type OutputFormatId,
 } from "@/lib/engine-v2";
+
+const UI_QUALITY_ORDER: QualityId[] = ['quick_verdict', 'comprehensive', 'exhaustive_research'];
 import {
   engineerV3 as engineer,
   type EngineerV3Result as EngineerResult,
@@ -84,8 +83,8 @@ function buildFeedbackPayload(args: {
 // ─── App ──────────────────────────────────────────────────────────────────────
 export default function Home() {
   const [task, setTask] = useState("");
-  const [quality, setQuality] = useState<QualityId>("fast_detailed");
-  const [adapter, setAdapter] = useState<AdapterId>("claude");
+  const [quality, setQuality] = useState<QualityId>("comprehensive");
+  const adapter: AdapterId = 'chatgpt';
   // Default to HTML — the most impressive showcase format for first-time users.
   // Users still freely switch via dropdown; text/markdown/etc are one click away.
   const [outputFormat, setOutputFormat] = useState<OutputFormatId>("html");
@@ -317,7 +316,7 @@ export default function Home() {
     });
     setResult(r);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [adapter, quality, outputFormat, userConstraints]);
+  }, [quality, outputFormat, userConstraints]);
 
   function run() {
     if (!task.trim()) return;
@@ -346,8 +345,7 @@ export default function Home() {
     setResult(null);
     setUserConstraints("");
     setRefineOpen(false);
-    setQuality("fast_detailed");
-    setAdapter("claude");
+    setQuality("comprehensive");
     setOutputFormat("text");
     setCopied(false);
     setTimeout(() => {
@@ -571,8 +569,8 @@ export default function Home() {
             <p className="text-xs text-[#4A5A6E] mb-2 font-semibold uppercase tracking-wider">
               {T("depth_heading")}
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              {QUALITY_AXIS_ORDER.map((qid) => {
+            <div className="grid grid-cols-3 gap-2">
+              {UI_QUALITY_ORDER.map((qid) => {
                 const active = quality === qid;
                 const labelKey = (
                   qid === "quick_verdict" ? "q_quick_label"
@@ -666,32 +664,6 @@ export default function Home() {
               ⏱ Takes ~{OUTPUT_FORMATS[outputFormat].timeEstimate} to render. Want the most polished output? Try ✨ HTML.
             </p>
           )}
-
-          {/* Model adapter row */}
-          <div className="mt-4">
-            <p className="text-xs text-[#4A5A6E] mb-2 font-semibold uppercase tracking-wider">
-              {T("adapter_heading")}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {ADAPTER_ORDER.map((aid) => {
-                const a = ADAPTERS[aid];
-                const active = adapter === aid;
-                return (
-                  <button
-                    key={aid}
-                    onClick={() => setAdapter(aid)}
-                    className={`pd-lift px-3 py-1.5 rounded-md border text-xs font-semibold ${
-                      active
-                        ? "border-[#A67C3D] bg-gradient-to-br from-[#143352] to-[#0A1F35] text-white shadow-sm ring-1 ring-[#A67C3D]/20"
-                        : "border-[#C4D2E0] bg-white text-[#0E1A2A] hover:border-[#143352] hover:bg-[#E8EFF5] hover:shadow-sm"
-                    }`}
-                  >
-                    {a.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
           <button
             onClick={run}
@@ -890,7 +862,6 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4">
                 <p className="text-xs text-[#4A5A6E] leading-relaxed">
                   {T("paste_into")}{" "}
-                  <span className="font-semibold text-[#143352]">{ADAPTERS[adapter].label}</span>.{" "}
                   {T("switch_intro")}{" "}
                   <span className="font-semibold text-[#143352]">{T("render_speed")}</span>.
                 </p>
