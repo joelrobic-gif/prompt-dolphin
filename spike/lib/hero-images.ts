@@ -1,4 +1,4 @@
-const HERO_IMAGE = '/brand/dolphin-leap.jpg';
+const HERO_IMAGE = '/brand/dolphin-breach.jpg';
 
 export function pickHeroImage(): { src: string; isRemote: boolean; alt: string } {
   return {

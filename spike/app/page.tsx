@@ -368,7 +368,7 @@ export default function Home() {
           src={heroSrc}
           alt={heroAlt}
           fill priority sizes="100vw"
-          className="object-cover object-[center_25%] transition-none"
+          className="object-cover transition-none"
           quality={85}
           style={{ transform: "translate3d(0,0,0) scale(1)" }}
         />
