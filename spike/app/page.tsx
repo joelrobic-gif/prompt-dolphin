@@ -368,11 +368,11 @@ export default function Home() {
           src={heroSrc}
           alt={heroAlt}
           fill priority sizes="100vw"
-          className="object-cover transition-none"
+          className="object-cover object-[center_25%] transition-none"
           quality={85}
           style={{ transform: "translate3d(0,0,0) scale(1)" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F35]/90 via-[#0A1F35]/60 to-[#0A1F35]/20 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F35]/80 via-[#0A1F35]/45 to-[#0A1F35]/10 pointer-events-none" />
 
         {/* Language picker — top right corner. Wrapper uses `fixed` so the
             dropdown escapes the hero `overflow-hidden` clip. Without this,
