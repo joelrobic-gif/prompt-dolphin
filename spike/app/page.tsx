@@ -334,10 +334,27 @@ export default function Home() {
 
   function copy() {
     if (!result) return;
-    navigator.clipboard.writeText(result.engineered).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    const text = result.engineered;
+    const onSuccess = () => { setCopied(true); setTimeout(() => setCopied(false), 2000); };
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
+        fallbackCopy(text) && onSuccess();
+      });
+    } else {
+      fallbackCopy(text) && onSuccess();
+    }
+  }
+
+  function fallbackCopy(text: string): boolean {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.cssText = "position:fixed;left:-9999px;top:-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch { /* ignore */ }
+    document.body.removeChild(ta);
+    return ok;
   }
 
   function reset() {
