@@ -66,7 +66,7 @@ export const ARCHETYPES: Record<ArchetypeId, Archetype> = {
     role: 'a senior executive communications director with 20 years writing clear, direct business correspondence',
     context: 'Focus on clarity, tone, and a single specific ask. Reader is busy and senior.',
     format: 'Subject line | Opening sentence stating purpose | Body 2-3 short paragraphs | Explicit ask | Sign-off',
-    exclusions: 'No passive voice. No filler phrases (just/really/I hope this finds you well). Max 250 words. Ask must be unambiguous.',
+    exclusions: 'Active voice throughout. Every sentence earns its place — cut filler (just/really/I hope this finds you well). Max 250 words. Make the ask unambiguous.',
     reasoning: 'Identify the single ask. Identify the decision the reader must make. Sequence: hook -> stakes -> ask.',
     critique: 'Is the ask crystal clear in 30 seconds? Is the tone right for the reader\'s seniority? Under 250 words?',
     examples: ['TO CEO requesting Q3 budget reallocation', 'TO board chair flagging executive search delay'],
@@ -86,7 +86,7 @@ export const ARCHETYPES: Record<ArchetypeId, Archetype> = {
     role: 'a chief of staff and senior executive advisor',
     context: 'Synthesize context, objectives, and decisions this meeting must drive. Assume the principal has 10 minutes to prep.',
     format: 'Objective | Background (3 bullets) | Key questions (3-5) | Decision framework | Pre-read links',
-    exclusions: 'No generic advice. One page max. Specific to this exact meeting and these exact attendees.',
+    exclusions: 'Tailor every line to this exact meeting and these exact attendees. One page max. Concrete specifics over generic advice.',
     reasoning: 'Identify the decision this meeting exists to make. Sequence: what we know -> what we need to learn -> what we will decide.',
     critique: 'Would a senior leader walk in fully prepared? Are the questions sharp enough to drive a decision?',
     examples: ['QBR with regional sales VP', 'Board pre-read for clinical readout review'],
@@ -107,7 +107,7 @@ export const ARCHETYPES: Record<ArchetypeId, Archetype> = {
     role: 'a senior research analyst with deep domain training and editorial discipline',
     context: 'Synthesize multiple sources into one coherent argument. Distinguish fact from interpretation. Flag uncertainty.',
     format: 'Key findings (3-5) | Evidence per finding with citation | Cross-source contradictions | Implications | Open questions',
-    exclusions: 'No unverified claims. No paraphrased speculation as fact. Flag every uncertainty inline. Cite every external source.',
+    exclusions: 'Cite every external source. Flag every uncertainty inline. Present only verified claims — label speculation as speculation.',
     reasoning: 'Group claims by topic. Triangulate across sources. Surface contradictions explicitly. Rank findings by confidence.',
     critique: 'Is every finding evidenced? Are implications drawn from the evidence rather than assumed? Is uncertainty visible?',
     examples: ['Synthesize 5 analyst reports on GLP-1 market sizing', 'Compare 3 academic papers on CAR-T toxicity profiles'],
@@ -127,7 +127,7 @@ export const ARCHETYPES: Record<ArchetypeId, Archetype> = {
     role: 'a senior strategy consultant designing Minto-pyramid presentations for C-suite audiences',
     context: 'Minto pyramid: answer first, then support with evidence. The deck must hold together without spoken narration.',
     format: 'Insight-titled slides | Max 35 words body per slide | Situation -> Complication -> Resolution arc | Speaker notes per slide',
-    exclusions: 'No descriptive slide titles (write the insight, not the topic). Max 35 words body. Max 12 slides unless explicitly approved.',
+    exclusions: 'Write insight titles, not topic titles. Keep body text lean — about 35 words per slide. Max 12 slides unless explicitly approved.',
     reasoning: 'Pick the single message. Sequence as pyramid: governing thought, then key supporting arguments, then evidence per argument.',
     critique: 'Does each slide title state the insight? Does the deck flow as a coherent narrative? Could a stranger follow it without you talking?',
     examples: ['Board deck recommending platform consolidation', 'Investor update on Phase 2 readout'],
@@ -146,7 +146,7 @@ export const ARCHETYPES: Record<ArchetypeId, Archetype> = {
     role: 'a senior data analyst fluent in statistics, SQL, and business storytelling',
     context: 'Move from raw data or question to insight. Show your method so a reviewer can reproduce. Distinguish correlation from causation.',
     format: 'Question | Data + assumptions | Method | Findings (ranked) | Caveats + confidence | Recommended next analysis',
-    exclusions: 'No insight without method. No causation language without supporting design. Flag missing data and sample limitations.',
+    exclusions: 'Show the method behind every insight. Reserve causal language for designs that support it. Flag missing data and sample limitations.',
     reasoning: 'State the question precisely. Choose the simplest method that answers it. Show calculation steps. Stress-test the finding.',
     critique: 'Could a reviewer reproduce the analysis? Are the caveats stronger than the headline? Is the confidence calibrated?',
     examples: ['Why did Q3 churn spike in EMEA mid-market?', 'Estimate revenue impact of switching from monthly to annual billing'],
@@ -185,7 +185,7 @@ export const ARCHETYPES: Record<ArchetypeId, Archetype> = {
     role: 'a CFO and investor relations director in biotech / life sciences with public company disclosure experience',
     context: 'Be candid. Bad news must be as prominent as good news. No hype, no boilerplate.',
     format: 'Pipeline progress | Catalysts ahead with timelines | Financial position (cash runway) | Risks | Candid outlook',
-    exclusions: 'No hype language. No buried bad news. No boilerplate. Label every forward-looking statement. No undisclosed material information.',
+    exclusions: 'Give bad news equal prominence to good news. Plain candid language — zero hype, zero boilerplate. Label every forward-looking statement. No undisclosed material information.',
     reasoning: 'Anchor in last update. Surface what changed. Update timelines honestly. Calibrate confidence per program.',
     critique: 'Would an institutional investor trust this? Is bad news visible without hunting? Are timelines defensible?',
     examples: ['Q3 investor update following Phase 2b readout', 'Annual letter from CEO to shareholders post-restructuring'],
@@ -205,7 +205,7 @@ export const ARCHETYPES: Record<ArchetypeId, Archetype> = {
     role: 'a senior M&A / venture diligence lead with operating background and forensic instincts',
     context: 'Surface what could kill the deal. Look past the deck. Cite source for every claim. Sequence findings by severity.',
     format: 'Deal thesis (1 line) | Confirmatory findings | Disconfirmatory findings | Hidden risks | Open items requiring management Q&A | Recommendation',
-    exclusions: 'No assumed numbers. No verbatim regurgitation of the seller deck. Flag every reliance item and source provenance.',
+    exclusions: 'Source every number — never assume one. Interrogate the seller deck rather than repeating it. Flag every reliance item and source provenance.',
     reasoning: 'Build a kill-the-deal hypothesis tree. Test each branch against evidence. Rank by severity x likelihood.',
     critique: 'Have we tested the bear case? Is every number sourced? Are the open items specific enough for a management call?',
     examples: ['Diligence on Series B medtech target with pre-revenue clinical claims', 'Commercial DD on B2B SaaS with concentrated customer base'],
@@ -224,7 +224,7 @@ export const ARCHETYPES: Record<ArchetypeId, Archetype> = {
     role: 'an SRE / incident commander writing blameless post-mortems trusted by engineering and leadership',
     context: 'Blameless. Focus on systems and signals, not individuals. Optimize for preventing the next incident.',
     format: 'TL;DR | Timeline (UTC) | Impact | Root cause | Contributing factors | What went well | What went badly | Action items with owners + dates',
-    exclusions: 'No blame. No vague action items. Every action item must have owner and date. No hindsight bias dressed as foresight.',
+    exclusions: 'Blameless throughout — systems and signals, not individuals. Every action item specific, with owner and date. Judge decisions by what was knowable at the time, not hindsight.',
     reasoning: 'Reconstruct timeline from logs / tickets / chat. Distinguish trigger from root cause. Test each contributing factor for control feasibility.',
     critique: 'Is it blameless in tone? Are action items specific, owned, dated, and verifiable? Does it explain the why, not only the what?',
     examples: ['Post-mortem on Saturday production database failover', 'Post-incident review after data exfiltration via misconfigured S3 bucket'],
@@ -243,7 +243,7 @@ export const ARCHETYPES: Record<ArchetypeId, Archetype> = {
     role: 'a corporate secretary and chief of staff drafting board-ready briefing materials for a public-company board',
     context: 'Board members are senior, time-constrained, and bring outside perspective. Surface decisions needed. Anticipate questions.',
     format: 'One-line ask | Background (5 bullets) | Options considered | Recommended path | Risks | Questions for the board | Appendix references',
-    exclusions: 'No operating-level minutiae. No unresolved internal disagreement presented as consensus. Material risks must be named, not euphemized.',
+    exclusions: 'Stay at board altitude — decisions and risks, not operating minutiae. Name material risks plainly. Present internal disagreement honestly, never as false consensus.',
     reasoning: 'Identify what the board must decide vs be informed of. Pre-empt the three sharpest questions a director will ask.',
     critique: 'Is the ask explicit? Are risks named honestly? Could a director walk in informed in 15 minutes?',
     examples: ['Board memo recommending CFO succession plan', 'Audit committee brief on cybersecurity incident exposure'],
@@ -262,7 +262,7 @@ export const ARCHETYPES: Record<ArchetypeId, Archetype> = {
     role: 'a senior strategy consultant and former McKinsey / BCG / Bain partner',
     context: 'Apply structured strategic thinking. Take a clear position. Present options with rationale and trade-offs.',
     format: 'Exec summary (3 sentences) | Strategic options (3-5) | Recommended path with reasoning | Top 3 risks + mitigations | Decision needed',
-    exclusions: 'No hedging without substance. No on-the-one-hand-on-the-other without a recommendation. Max 500 words main body.',
+    exclusions: 'Take a clear position and defend it. Weigh the sides, then commit to one recommendation. Max 500 words main body.',
     reasoning: 'Frame the decision. Generate genuinely distinct options. Score each on value, feasibility, time, risk. Pick. Defend.',
     critique: 'Is the recommendation defensible? Are the options actually distinct or strawmen? Does it advance a clear position?',
     examples: ['Build vs buy decision for ML inference platform', 'Market entry strategy for European launch'],
@@ -301,7 +301,7 @@ export const ARCHETYPES: Record<ArchetypeId, Archetype> = {
     role: 'a senior quantitative trader and systematic-strategy architect with execution, risk, and compliance fluency',
     context: 'Treat any trading idea as a system: signal, sizing, execution, risk, monitoring, kill-switch. Refuse to ship hand-wavy P&L claims. Distinguish backtest from live.',
     format: 'Strategy thesis | Universe + data sources | Entry / exit signal | Sizing + portfolio constraints | Execution venue + slippage assumptions | Risk controls + kill-switch | Monitoring + alerting | Backtest design + caveats | Capital + cost requirements',
-    exclusions: 'No Sharpe claims without backtest design disclosed. No \'set and forget\' framing. Name regulatory + tax surface. Flag overfitting risk.',
+    exclusions: 'Disclose backtest design behind every performance claim. Treat the system as continuously monitored — never \'set and forget\'. Name regulatory + tax surface. Flag overfitting risk.',
     reasoning: 'Decompose into signal -> sizing -> execution -> risk -> monitoring. Stress every layer for failure mode. Map to broker capability.',
     critique: 'Is every layer of the system specified? Are failure modes named? Could a quant peer build it from this spec?',
     examples: ['IBKR autotrading biotech catalyst strategy spec', 'Pairs trading system for ADR vs. local listings'],
@@ -322,7 +322,7 @@ export const ARCHETYPES: Record<ArchetypeId, Archetype> = {
     role: 'a principal software architect who has shipped distributed systems at scale and reviewed designs for many teams',
     context: 'Produce a design document an engineer can build from and a reviewer can challenge. Show trade-offs, not preferences.',
     format: 'Problem statement | Goals + non-goals | Constraints | Proposed architecture (components + data flow) | Alternatives considered | Trade-offs | Operational concerns (observability, failure modes, scaling) | Rollout plan | Open questions',
-    exclusions: 'No magic. No buzzword stacks without justification. Every choice must name its trade-off. Flag prerequisites that don\'t exist yet.',
+    exclusions: 'Justify every technology choice and name its trade-off. Explain the mechanism — no magic, no unexamined buzzwords. Flag prerequisites that don\'t exist yet.',
     reasoning: 'Frame the problem. Bound scope. Enumerate at least 2 viable architectures. Score each. Pick. Specify what could go wrong.',
     critique: 'Could an engineer build it? Could a reviewer fail it on a specific weak point? Are the alternatives real or strawmen?',
     examples: ['Design doc for multi-tenant feature flag service', 'Architecture proposal for event-sourced order management'],
@@ -342,7 +342,7 @@ export const ARCHETYPES: Record<ArchetypeId, Archetype> = {
     role: 'a world-class domain expert combining deep knowledge with clear communication',
     context: 'Think carefully. Address the specific task as posed, not a generic version. State assumptions when you must make them.',
     format: 'Direct answer | Supporting reasoning | Concrete next steps',
-    exclusions: 'No padding. No generic advice. No restating the question. Specific to this exact task.',
+    exclusions: 'Answer this exact task with specifics. Skip padding, generic advice, and restating the question.',
     reasoning: 'Identify the actual ask. State assumptions explicitly. Reason from first principles when the task admits one right answer.',
     critique: 'Does it directly answer what was asked? Is every claim specific to this task?',
     examples: ['Catch-all when nothing else scores'],
@@ -551,7 +551,7 @@ export const OUTPUT_FORMATS: Record<OutputFormatId, OutputFormat> = {
     valueShort: 'A formal business document ready to paste into Microsoft Word — section headings, paragraphs, tables, bullets all properly structured.',
     audience: 'Business pros writing memos, proposals, reports, contracts.',
     downloadTruth: 'Paste the response into a blank Word doc — formatting transfers. Or save as .docx via Word.',
-    injection: 'Format as a Microsoft Word document:\n- Use # for H1 titles, ## for H2 section headings, ### for H3 subsections\n- Use plain dash bullets and numbered lists\n- Use | pipe | tables | for tabular data | (Word recognizes these)\n- No code fences or backticks\n- Include a 1-line title at the top in H1\n- Format paragraphs as full sentences, not telegraphic notes.',
+    injection: 'Format as a Microsoft Word document:\n- Use # headings for hierarchy, plain bullets and numbered lists\n- Use | pipe | tables | for any tabular data\n- No code fences or backticks — Word style only\n- Title at the top, full sentence paragraphs throughout.',
   },
   powerpoint: {
     id: 'powerpoint',
@@ -562,7 +562,7 @@ export const OUTPUT_FORMATS: Record<OutputFormatId, OutputFormat> = {
     valueShort: 'A slide-by-slide deck outline with titles, bullets, and speaker notes — ready to drop into PowerPoint or Keynote.',
     audience: 'Executives presenting to boards, sales teams pitching, anyone running a meeting with slides.',
     downloadTruth: 'Each "slide" is a chunk of text you paste into one PowerPoint slide. ChatGPT Plus / Claude can also export .pptx for some plans.',
-    injection: 'Format as a PowerPoint slide deck. For each slide use this exact structure:\n\n[SLIDE 1 — Insight title (not a topic title)]\n• Bullet 1 (max 8 words)\n• Bullet 2 (max 8 words)\n• Bullet 3 (max 8 words)\n[SPEAKER NOTES: 2-3 sentences expanding what the presenter says aloud]\n\nFollow Minto pyramid: insight title first, supporting bullets below. Max 12 slides unless explicitly told otherwise. Max 35 words of body per slide.',
+    injection: 'Format as a PowerPoint slide deck. For each slide:\n\n[SLIDE N — Lead with the insight, not the topic]\n• Concise bullet\n• Concise bullet\n• Concise bullet\n[SPEAKER NOTES: 2-3 sentences expanding what the presenter says aloud]\n\nPyramid principle: insight title first, supporting points below. Keep slides scannable — minimal text, maximum clarity. Aim for 8-12 slides unless told otherwise.',
   },
   excel: {
     id: 'excel',
@@ -572,7 +572,7 @@ export const OUTPUT_FORMATS: Record<OutputFormatId, OutputFormat> = {
     valueShort: 'A spreadsheet with columns, rows, headers, and formulas — paste into Excel or Google Sheets and it lays out correctly.',
     audience: 'Analysts, finance, ops — anyone working with tabular numeric data.',
     downloadTruth: 'Paste the table into Excel — column splits work automatically. Or ask the AI to export as .xlsx (Plus / Claude file output).',
-    injection: 'Format as an Excel spreadsheet. Output as a single table (or multiple tables clearly separated by headings):\n\n- Row 1: column headers (bold, descriptive)\n- Use | pipe | separators | per row | (Excel paste recognizes tabs and pipes)\n- Include a SUMMARY row at the bottom with totals / averages where appropriate\n- For any computed columns, ALSO output the formula in a separate column labeled "Formula" using Excel syntax (=SUM(B2:B10), =AVERAGE(...), etc.)\n- No prose between rows. Tables only.\n- If multiple sheets are needed, separate with === SHEET: name === headers.',
+    injection: 'Format as an Excel spreadsheet:\n- Row 1: clear, descriptive column headers\n- Use | pipe | separators | per row |\n- Include summary rows (totals, averages) where appropriate\n- For computed columns, show the Excel formula in a separate "Formula" column\n- No prose between rows — tables only\n- Multiple sheets: separate with === SHEET: name ===',
   },
   csv: {
     id: 'csv',
@@ -594,107 +594,42 @@ export const OUTPUT_FORMATS: Record<OutputFormatId, OutputFormat> = {
     valueShort: 'Magazine-grade, editorial-design HTML — single self-contained file, opens in any browser, prints to PDF beautifully. The most impressive format Prompt Dolphin produces.',
     audience: 'Anyone sharing a high-stakes deliverable that needs to look like Stratechery / Bloomberg / The Information at first glance.',
     downloadTruth: 'Copy the HTML, save as `report.html`, double-click — opens as a website in your browser. Share via email, host on any static site, or print to PDF.',
-    injection: `Format as a COMPLETE, SINGLE-FILE, MAGAZINE-GRADE HTML5 DOCUMENT.
-EDITORIAL DESIGN BAR — match The Information / Stratechery / Bloomberg / The Pudding tier. No exceptions.
+    injection: `Format as a COMPLETE, SINGLE-FILE, PUBLICATION-GRADE HTML5 DOCUMENT.
+
+DESIGN BENCHMARK: The Information, Stratechery, Bloomberg, The Pudding. The reader's first impression should be "this was professionally designed."
+
+TECHNICAL CONSTRAINTS (non-negotiable):
+- Single self-contained file. ALL CSS in one <style> block. Zero external stylesheets, fonts, scripts, or CDN links.
+- Make the document editable: add contenteditable="true" on the <body> or <main> element so the user can click and edit any text directly in the browser before saving or printing.
+- Must render correctly when opened via file:// in any modern browser.
+- Output ONLY the HTML document. No prose preface, no code fences.
+- Well-formed HTML5. CSS-only — no JavaScript.
+
+DESIGN DIRECTION (use your best judgment on specific values):
+- Editorial typography: elegant serif headlines, clean sans-serif body text, monospace for data. System font stacks only.
+- Generous whitespace — let content breathe. Comfortable reading measure, ample vertical rhythm between sections.
+- Refined neutral palette with one tasteful accent hue. Support light and dark mode via prefers-color-scheme.
+- Strong visual hierarchy: clear distinction between headline, section headings, body text, and captions.
+- Comfortable line height and letter spacing for long-form reading.
+
+CONSISTENCY DISCIPLINE:
+- Declare the full design system ONCE as CSS custom properties in :root — palette, type scale, spacing scale — then reference only those tokens throughout. Never improvise new colors or sizes mid-document.
+- Prefer the classic, restrained choice over the experimental one at every design decision. A timeless editorial layout beats a novel one.
 
 STRUCTURE:
-  <!doctype html><html lang="en">
-  <head>: <meta charset=utf-8>, <meta viewport width=device-width,initial-scale=1>, <title>, ALL CSS inline in a single <style>. No external CDN / fonts / scripts / preconnects.
-  <body>: <header class="hero"> + <nav class="toc"> (if doc > 1500 words) + <main> stacked <article>/<section> + <footer>.
+- Hero section at top: eyebrow label, compelling headline, one-sentence summary, estimated reading time.
+- Table of contents for documents over 1500 words.
+- Elegant section dividers, pull quotes for key insights, polished data tables with aligned numerics.
+- Cards with subtle borders and soft shadows for grouped content.
+- Smooth hover states, accessible focus rings, scroll behavior.
+- Responsive: beautiful on desktop, fully readable on mobile, clean print stylesheet.
 
-TYPOGRAPHY (editorial-grade):
-  Serif headlines: ui-serif, 'Iowan Old Style', 'Apple Garamond', Georgia, serif.
-  Sans body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif.
-  Mono data: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace.
-  Scale: H1 44-52px serif bold (text-wrap: balance); H2 28-32px serif semibold; H3 21px sans medium;
-    Body 17px sans / line-height 1.65 / letter-spacing -0.005em / text-wrap: pretty;
-    Caption 13px sans / line-height 1.4 / color muted.
-  Line-length: max-width 720-760px content column. Generous trailing whitespace (96px+ between sections).
-  Hanging punctuation on blockquotes (text-indent: -0.45em on opening quote).
-  Optical alignment on initial drop-cap when used.
-  font-feature-settings: "ss01", "cv01", "kern", "liga".
-  font-variant-numeric: tabular-nums on numeric columns.
+CONTENT STANDARDS:
+- Cite every factual claim inline. Footer sources list with publication, date, URL.
+- No invented quotes, statistics, URLs, or images.
+- No marketing fluff ("revolutionary", "game-changing", "best-in-class").
 
-COLOR SYSTEM — 10-stop neutral + 1 accent tint scale, light AND dark scheme:
-  Neutrals: --n50 to --n900 (10 stops, e.g. --n50:#FAFAF9, --n900:#0F1115).
-  Accent: --a50 to --a900 from a single brand hue.
-  Light scheme defaults:
-    --bg:--n50; --ink:--n900; --ink-muted:--n600; --rule:--n200; --accent:--a700; --accent-tint:--a100.
-  Dark scheme via @media (prefers-color-scheme: dark):
-    --bg:--n900; --ink:--n50; --ink-muted:--n400; --rule:--n700; --accent:--a300; --accent-tint:--a800.
-  AAA contrast required on body text.
-  Anti-aliasing: -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility.
-
-HERO BLOCK (top of document):
-  Full-width container, 380-480px tall, generous internal padding (60px+ vertical).
-  Eyebrow (small uppercase, letter-spacing wide, accent color): publication name + as-of timestamp.
-  Headline serif H1, balanced wrap, max 14 words.
-  Dek (serif italic 22-26px, ink-muted): one sentence summarizing the report.
-  Optional hero image: <img> with a REAL source URL (NEVER invent one), OR a tasteful CSS gradient placeholder using the accent hue.
-  Byline row: publication / reading time (computed: words / 220 wpm, rounded to nearest minute).
-
-NAVIGATION (only when doc > 1500 words):
-  <nav class="toc">: anchor-jump table of contents, sticky on desktop (position: sticky; top: 24px), collapses to inline on mobile.
-  Active section indicator via :target.
-
-LAYOUT POLISH:
-  Section dividers: 1px hairline rule in --rule, 32px above + 16px below.
-  Cards: subtle 1px border, 12px border-radius, 28px padding, very soft shadow (rgba(0,0,0,.04) 0 1px 3px).
-  Pull-quotes: large serif italic in accent color, hanging quote mark, 24px above/below.
-  Definition lists: <dl class="defs"> for terms.
-  Sidenotes on desktop (Tufte-style margin notes): float-right 240px wide; full-width inline on mobile.
-  Inline CSS-only sparklines for trend mentions: <svg class="spark" viewBox="0 0 60 20" preserveAspectRatio="none"><polyline points="..." fill="none" stroke="currentColor" stroke-width="1.5"/></svg>.
-  Reading rhythm: 24-32px <p> margins; 48px above <h2>; 32px above <h3>.
-
-TABLES:
-  Numerics right-aligned, monospace, font-variant-numeric: tabular-nums.
-  Zebra striping alternating --n50/--n100 rows.
-  Sticky <th> headers (position: sticky; top: 0) on tables > 8 rows.
-  Cell padding 12px vertical / 16px horizontal.
-  Caption above table (serif italic, ink-muted), <caption> element.
-  Hover row highlight (very subtle: --accent-tint at 0.3 alpha).
-
-CITATIONS:
-  Inline cite pattern: <a href="..." class="cite"><sup>[N]</sup></a>, N references the footer sources list.
-  Every numeric claim, named outlet, statistic, quote, comparison MUST carry an inline cite.
-  Footer <ol class="sources"> with: publication, ISO date, URL, accessed ISO date.
-  Link styling: subtle underline (text-decoration-thickness: 1px, underline-offset: 3px), no color jump unless hover.
-  Hover: thicken underline to 2px + brighten color.
-
-INTERACTIONS (CSS-only, no JS):
-  Smooth scroll on anchor jumps (scroll-behavior: smooth).
-  Focus rings AAA-visible: 2px solid --accent, 2px offset.
-  Hover lift on cards: transform: translateY(-1px); transition: transform 200ms ease.
-  Fade-in on scroll where animation-timeline: view() supported (graceful fallback otherwise).
-
-RESPONSIVE (mobile-first):
-  Mobile (default): single column, sidenotes inline, hero 280px, typography 0.92x.
-  Tablet (>= 768px): 700px content column, sidenotes inline cards.
-  Desktop (>= 1024px): 760px column, sidenotes float right as margin notes.
-  Container max-width 1100px including margin notes.
-
-PRINT STYLESHEET (@media print):
-  Force light scheme. Sans 11pt. Headings sized for letter paper.
-  Page-break-inside: avoid on <article>, <table>, <figure>, <blockquote>.
-  Hide navigation, expand all collapsibles, print source URLs verbatim in footnotes.
-
-ICONOGRAPHY:
-  Inline SVG only (no icon fonts, no CDN). currentColor stroke/fill.
-  Hairline 1.5px stroke, rounded line caps + joins.
-
-ABSOLUTE NO:
-  No <link rel="stylesheet">. No external <script src=>. No font CDN preconnects.
-  No marketing prose ("revolutionary", "game-changing", "groundbreaking", "industry-leading", "synergies", "best-in-class", "next-generation", "paradigm-shift", "world-class", "cutting-edge", "leverage").
-  No invented quotes, statistics, outlets, URLs, images.
-  No emoji in body text (only as small status indicators if data-driven).
-  No deprecated patterns: <font>, <center>, <table> for layout, <br> for spacing.
-
-DELIVERY:
-  Output ONLY the HTML document. No prose preface. No code-fence wrapper.
-  Document must validate as well-formed HTML5 (all tags closed, attributes quoted).
-  Document must render correctly when opened via file:// (no server-required APIs).
-
-The reader's first 5 seconds should communicate publication-grade quality. Beat that bar.`,
+Produce something a designer would be proud to ship.`,
   },
   pdf_1pager: {
     id: 'pdf_1pager',
@@ -705,7 +640,7 @@ The reader's first 5 seconds should communicate publication-grade quality. Beat 
     valueShort: 'A single-page executive summary — situation, finding, evidence, recommendation, next step. Fits on one printed page.',
     audience: 'Executives, board members, anyone with 60 seconds to absorb a decision.',
     downloadTruth: 'Paste into Word or Google Docs, set margins narrow, export to PDF. Or use HTML output + browser "Save as PDF".',
-    injection: 'Format as a one-page executive summary that fits on a single printed page. Use this exact 5-section structure:\n\n# [HEADLINE — one sentence stating the recommendation or finding]\n\n## SITUATION (2 sentences)\nWhat is happening and why we care.\n\n## KEY FINDING (1 bold sentence)\n**The single most important insight.**\n\n## EVIDENCE (3 bullets, one line each)\n• Data point or fact 1\n• Data point or fact 2\n• Data point or fact 3\n\n## RECOMMENDATION (1-2 sentences)\nThe specific action to take.\n\n## NEXT STEP (1 sentence)\nThe immediate next decision or action required and by whom.\n\nMax 500 words total. No filler. Every word earns its place.',
+    injection: 'Format as a one-page executive summary that fits on a single printed page.\n\nStructure: Headline → Situation → Key Finding → Evidence → Recommendation → Next Step.\n\nKeep it tight — under 500 words. Every sentence earns its place. The reader should absorb the entire decision in 60 seconds.',
   },
   research_report: {
     id: 'research_report',
@@ -716,7 +651,7 @@ The reader's first 5 seconds should communicate publication-grade quality. Beat 
     valueShort: 'A full academic-grade report with executive summary, methodology, findings, analysis, recommendations, limitations, and appendix. 3,000-6,000 words.',
     audience: 'Academics, policy researchers, consulting deliverables, deep dives, white papers.',
     downloadTruth: 'Paste into Word or Google Docs, apply heading styles, export to PDF. Or output as Markdown then convert.',
-    injection: 'Format as a full long-form research report (3000-6000 words). Use this exact section structure:\n\n# [Report title — descriptive and specific]\n\n## 1. Executive Summary (≤ 300 words)\nFindings and recommendation in 1 paragraph + bullets.\n\n## 2. Background and Context\nWhy this question matters, what is already known, what gap exists.\n\n## 3. Methodology\n### 3.1 Data sources\n### 3.2 Analytical framework\n### 3.3 Scope and exclusions\n\n## 4. Findings\nOne subsection per major finding, with evidence and citations.\n\n## 5. Analysis and Implications\nWhat the findings mean, second-order effects.\n\n## 6. Recommendations\nNumbered, prioritized, each with a rationale and an owner.\n\n## 7. Limitations and Caveats\nHonest list of what we couldn\'t determine and why.\n\n## 8. Appendix\nSupporting data, additional charts, glossary, full source list.\n\nCite every external claim inline with [source name, year, page]. No unverified speculation as fact.',
+    injection: 'Format as a comprehensive research report (3000-6000 words).\n\nInclude: Executive Summary, Background, Methodology, Findings, Analysis, Recommendations, Limitations, and Appendix.\n\nUse numbered sections and subsections. One subsection per major finding with supporting evidence. Recommendations should be prioritized with rationale.\n\nCite every external claim inline. No unverified speculation presented as fact.',
   },
   email: {
     id: 'email',
@@ -726,7 +661,7 @@ The reader's first 5 seconds should communicate publication-grade quality. Beat 
     valueShort: 'A ready-to-send email: subject line, opening, body, ask, and sign-off. Under 250 words. Paste into Gmail / Outlook and send.',
     audience: 'Anyone writing professional email — execs, sales, customer success, founders.',
     downloadTruth: 'Copy and paste into your email client. Subject line goes in the subject field, body goes in the body. No file.',
-    injection: 'Format as a complete email. Use this exact structure:\n\nSubject: [punchy, specific, under 60 chars — promises what is inside]\n\n[Greeting — match formality to recipient]\n\n[Body paragraph 1 — context in 1-2 sentences]\n\n[Body paragraph 2 — the ask or key info]\n\n[Body paragraph 3 if needed — supporting details]\n\n[Explicit ask: "Could you..." / "Please confirm by..."]\n\n[Sign-off — match formality]\n[Name]\n\nMax 250 words total. No filler ("just", "I hope this finds you well"). Active voice only. The ask must be unambiguous in 30 seconds of reading.',
+    injection: 'Format as a ready-to-send email:\n\nSubject: [specific, under 60 chars]\n\n[Greeting]\n[Context — 1-2 sentences]\n[The ask or key information]\n[Supporting details if needed]\n[Clear, unambiguous call to action]\n[Sign-off]\n\nMax 250 words. No filler. Active voice. The recipient should know exactly what you need within 30 seconds.',
   },
   power_bi: {
     id: 'power_bi',
@@ -736,7 +671,7 @@ The reader's first 5 seconds should communicate publication-grade quality. Beat 
     valueShort: 'A dashboard specification: which charts to build, which fields to use, which DAX formulas to write, what filters and KPIs to expose. Hand to a BI developer or build it yourself.',
     audience: 'BI developers, data analysts, anyone briefing a dashboard build.',
     downloadTruth: 'Use the spec to build the dashboard yourself in Power BI or Tableau, or hand it to a BI dev as the build brief.',
-    injection: 'Format as a Power BI / Tableau dashboard specification. Output these sections:\n\n## 1. Dashboard Purpose\nOne sentence: who uses it, what decision it supports.\n\n## 2. Data Sources\nList each table / dataset, its grain, key fields, refresh frequency.\n\n## 3. KPI Tiles (top of dashboard)\nFor each KPI: name, formula (DAX or calculation), target value, conditional formatting rule.\n\n## 4. Visuals\nFor each chart: chart type (bar/line/scatter/treemap/etc.), x-axis, y-axis, color encoding, filters applied, business question it answers.\n\n## 5. Filters / Slicers\nWhich dimensions users can filter on, default selections.\n\n## 6. DAX / Calculated Measures\nFor any non-trivial calculation, write the exact DAX or Tableau formula.\n\n## 7. Drill-throughs\nWhich charts drill to which detail views.\n\n## 8. Performance Notes\nIndexing, aggregation, query optimization guidance.\n\nNo prose narrative — this is a build brief.',
+    injection: 'Format as a Power BI / Tableau dashboard specification.\n\nInclude: Dashboard Purpose, Data Sources (tables, grain, key fields), KPI Tiles (name, formula, target, formatting), Visuals (chart type, axes, encoding, business question), Filters/Slicers, DAX/Calculated Measures, Drill-throughs, and Performance Notes.\n\nWrite exact DAX or Tableau formulas for non-trivial calculations. This is a build brief — no prose narrative.',
   },
   json: {
     id: 'json',
@@ -746,7 +681,7 @@ The reader's first 5 seconds should communicate publication-grade quality. Beat 
     valueShort: 'Structured machine-readable data. Use it as input to another tool, an API, or a script. No prose.',
     audience: 'Developers, automation builders, anyone piping AI output into another system.',
     downloadTruth: 'Copy the JSON, save as a .json file, or feed it directly to your code / API / workflow.',
-    injection: 'Format the response as a single valid JSON object. Rules:\n- Output ONLY JSON. No prose before, no prose after, no markdown fences.\n- Use snake_case keys.\n- Use ISO 8601 for any dates ("2026-05-25") and ISO 8601 with timezone for timestamps ("2026-05-25T14:30:00Z").\n- Use null for missing values, not empty strings.\n- Arrays for repeated entities, objects for named groupings.\n- Include a top-level "schema_version": "1.0" and "generated_at": "<ISO timestamp>".\n- The output must parse cleanly with JSON.parse() — no trailing commas, no comments, no unescaped quotes inside strings.',
+    injection: 'Format the response as a single valid JSON object. Rules:\n- FIRST, silently design a JSON schema that fits this task: choose field names and types that capture the content faithfully. THEN populate it.\n- If your runtime supports native structured output (e.g., response_format with a json_schema), use it.\n- Output ONLY JSON. No prose before, no prose after, no markdown fences.\n- Use snake_case keys.\n- Use ISO 8601 for any dates ("2026-05-25") and ISO 8601 with timezone for timestamps ("2026-05-25T14:30:00Z").\n- Use null for missing values, not empty strings.\n- Arrays for repeated entities, objects for named groupings.\n- Include a top-level "schema_version": "1.0" and "generated_at": "<ISO timestamp>".\n- The output must parse cleanly with JSON.parse() — no trailing commas, no comments, no unescaped quotes inside strings.',
   },
 };
 

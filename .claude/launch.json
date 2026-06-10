@@ -2,11 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "spike",
-      "runtimeExecutable": "bun",
-      "runtimeArgs": ["run", "dev"],
-      "cwd": "spike",
-      "port": 3030
+      "name": "spike-canonical",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "C:\\Users\\joelr\\Claude Projects\\prompt-dolphin\\spike", "--", "--port", "3031"],
+      "cwd": "C:\\Users\\joelr\\Claude Projects\\prompt-dolphin\\spike",
+      "port": 3031
     }
   ]
 }

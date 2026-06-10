@@ -89,6 +89,7 @@ export default function Home() {
   // Users still freely switch via dropdown; text/markdown/etc are one click away.
   const [outputFormat, setOutputFormat] = useState<OutputFormatId>("html");
   const [userConstraints, setUserConstraints] = useState("");
+  const [userExample, setUserExample] = useState("");
   const [result, setResult] = useState<EngineerResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [refineOpen, setRefineOpen] = useState(false);
@@ -168,6 +169,15 @@ export default function Home() {
   const constraintsList = useMemo(
     () => userConstraints.split("\n").map((s) => s.trim()).filter(Boolean),
     [userConstraints]
+  );
+
+  // User-supplied style exemplar — the single biggest quality lever in the
+  // literature. Framed so the AI matches style/structure, not content.
+  const exampleList = useMemo(
+    () => userExample.trim()
+      ? [`STYLE/QUALITY EXEMPLAR — match the style, structure, and quality bar of this sample (do not copy its content):\n${userExample.trim()}`]
+      : [],
+    [userExample]
   );
 
   // Parse segments for the active engineered prompt
@@ -313,10 +323,11 @@ export default function Home() {
       quality,
       outputFormat,
       userConstraints: constraintsList,
+      exampleOverrides: exampleList,
     });
     setResult(r);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quality, outputFormat, userConstraints]);
+  }, [quality, outputFormat, userConstraints, userExample]);
 
   function run() {
     if (!task.trim()) return;
@@ -325,6 +336,7 @@ export default function Home() {
       quality,
       outputFormat,
       userConstraints: constraintsList,
+      exampleOverrides: exampleList,
     });
     setResult(r);
     setTimeout(() => {
@@ -361,6 +373,7 @@ export default function Home() {
     setTask("");
     setResult(null);
     setUserConstraints("");
+    setUserExample("");
     setRefineOpen(false);
     setQuality("comprehensive");
     setOutputFormat("text");
@@ -919,6 +932,22 @@ export default function Home() {
                       />
                       <p className="text-[10px] text-[#8FA6BC] mt-1.5">
                         {T("constraints_help")}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-[#4A5A6E] font-semibold uppercase tracking-wider mb-2">
+                        {T("example_label")}
+                      </label>
+                      <textarea
+                        value={userExample}
+                        onChange={(e) => setUserExample(e.target.value)}
+                        className="w-full border border-[#C4D2E0] rounded-md p-2 text-sm text-[#0E1A2A] bg-white focus:outline-none focus:border-[#143352] font-mono leading-relaxed"
+                        rows={4}
+                        dir={dir}
+                      />
+                      <p className="text-[10px] text-[#8FA6BC] mt-1.5">
+                        {T("example_help")}
                       </p>
                     </div>
 

@@ -650,6 +650,9 @@ export function buildSpineV3(args: BuildSpineV3Args): SpineV3 {
     const sourceList = profile.sources.map((s) => s.count ? `${s.count} ${s.type.replace('_', ' ')}` : s.type.replace('_', ' ')).join(', ');
     task_restated += `\n\nSOURCE MATERIALS (user will provide): ${sourceList}.`;
   }
+  if (classification.confidence === 'low') {
+    task_restated += '\n\nBEFORE YOU START: the task as stated may be ambiguous. If any load-bearing detail is unclear — audience, scope, format, or success criteria — ask up to 3 clarifying questions first, then produce the deliverable. If everything is clear, proceed directly.';
+  }
 
   const contextParts = [primaryArch.context, qa.depth.summary];
   if (secondaryArch && secondaryArch.context !== primaryArch.context) {
@@ -664,9 +667,19 @@ export function buildSpineV3(args: BuildSpineV3Args): SpineV3 {
     structured: 'Reason in this order: (1) frame the decision (2) generate distinct options (3) score options on the stated criteria (4) pick one (5) defend it (6) name what would change your mind.',
     full: 'Reason in this order: (1) frame the question (2) gather and cite evidence (3) generate alternative interpretations (4) test each against the evidence (5) pick the best-supported (6) state confidence and remaining uncertainty.',
   };
+  // Map depth presets to each runtime's native reasoning controls.
+  const NATIVE_REASONING: Record<AdapterId, string> = {
+    claude: 'If extended thinking is available on your runtime, enable it for this task. Keep the visible chain-of-thought concise — think internally.',
+    chatgpt: 'If a reasoning model or "think longer" mode is available on your runtime, use it with high reasoning effort. Keep the visible chain-of-thought concise — think internally.',
+    gemini: 'If a thinking mode or Deep Research is available on your runtime, use it. Keep the visible chain-of-thought concise — think internally.',
+    copilot: 'If "Think Deeper" is available on your runtime, use it. Keep the visible chain-of-thought concise — think internally.',
+    grok: 'If Think mode is available, use it. Keep the visible chain-of-thought concise — think internally.',
+  };
   let reasoningPreset = REASONING_PRESETS[qa.reasoning] || '';
-  if ((adapter === 'claude' || adapter === 'chatgpt') && (quality === 'strategic_depth' || quality === 'exhaustive_research')) {
-    reasoningPreset += ' (If running on a reasoning model — o1/o3/Claude extended thinking — keep visible chain-of-thought concise; the model thinks internally.)';
+  if (quality === 'comprehensive' || quality === 'strategic_depth' || quality === 'exhaustive_research') {
+    reasoningPreset += (reasoningPreset ? '\n' : '') + NATIVE_REASONING[adapter];
+  } else if (quality === 'quick_verdict') {
+    reasoningPreset = 'Answer directly — this task does not need deep reasoning or extended thinking.';
   }
   const reasoning = [reasoningPreset, primaryArch.reasoning].filter(Boolean).join('\n\n');
 
@@ -681,6 +694,17 @@ export function buildSpineV3(args: BuildSpineV3Args): SpineV3 {
   } else {
     formatParts.push(primaryArch.format);
   }
+  // Output priming: lock the first characters of the response so the model
+  // starts with the deliverable instead of preamble.
+  const FORMAT_OPENERS: Partial<Record<OutputFormatId, string>> = {
+    html: 'Begin your response with `<!doctype html>` as the very first characters — no preamble before it.',
+    json: 'Begin your response with `{` as the very first character — no preamble.',
+    csv: 'Begin your response with the CSV header row as the very first line — no preamble.',
+    email: 'Begin your response with `Subject:` as the very first line — no preamble.',
+    markdown: 'Begin your response with the document\'s `#` title as the very first line — no preamble.',
+  };
+  const opener = FORMAT_OPENERS[outputFormat];
+  if (opener) formatParts.push(opener);
   const format = formatParts.filter(Boolean).join('\n\n');
 
   const archetypeNaturalLen = (() => {
