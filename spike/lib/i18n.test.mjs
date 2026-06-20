@@ -25,7 +25,10 @@ const keys = (keyMatch?.[1] ?? '')
   .map((s) => s.replace(/^['"]|['"]$/g, ''))
   .filter((s) => /^[a-z_]+$/.test(s));
 
-const TRANS_BLOCK_REGEX = /TRANSLATIONS:\s*Record<LangId,\s*Record<TranslationKey,\s*string>>\s*=\s*\{([\s\S]+?)\};\s*\n\s*export function t\(/;
+// Type annotation is intentionally loose-matched: `en` is Required<...> and the
+// other locales are Partial<...> (untranslated keys fall through to en at runtime),
+// so the signature is no longer a single `Record<LangId, Record<...>>`.
+const TRANS_BLOCK_REGEX = /TRANSLATIONS:[\s\S]*?=\s*\{([\s\S]+?)\};\s*\n\s*export function t\(/;
 const transBlock = src.match(TRANS_BLOCK_REGEX)?.[1] ?? '';
 
 let pass = 0;

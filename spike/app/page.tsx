@@ -17,6 +17,18 @@ import {
   type EngineerV3Result as EngineerResult,
 } from "@/lib/engine-v3";
 import {
+  recommendFor,
+  ADAPTER_SURFACE,
+  ADAPTER_IDS,
+  type ModelRecommendation,
+} from "@/lib/recommend";
+import {
+  buildLoopPrompt,
+  buildAgentWorkflow,
+  HARNESS_LABELS,
+  type HarnessKind,
+} from "@/lib/harness";
+import {
   LANGUAGES,
   LANGUAGE_ORDER,
   TRANSLATIONS,
@@ -84,7 +96,14 @@ function buildFeedbackPayload(args: {
 export default function Home() {
   const [task, setTask] = useState("");
   const [quality, setQuality] = useState<QualityId>("comprehensive");
-  const adapter: AdapterId = 'chatgpt';
+  // Recommended model is deterministic per (archetype, outputFormat). Default
+  // `claude` matches the showcase default format (HTML -> Claude), so the very
+  // first run does not visibly flip the badge. run() adopts the recommendation
+  // unless the user has manually overridden via the <select>.
+  const [adapter, setAdapter] = useState<AdapterId>("claude");
+  // True once the user picks a model from the override <select>. While false,
+  // each run auto-adopts the recommendation.
+  const [adapterOverridden, setAdapterOverridden] = useState(false);
   // Default to HTML — the most impressive showcase format for first-time users.
   // Users still freely switch via dropdown; text/markdown/etc are one click away.
   const [outputFormat, setOutputFormat] = useState<OutputFormatId>("html");
@@ -92,6 +111,10 @@ export default function Home() {
   const [userExample, setUserExample] = useState("");
   const [result, setResult] = useState<EngineerResult | null>(null);
   const [copied, setCopied] = useState(false);
+  // Harness output panel (Create loop + Create agent workflow share this).
+  const [harnessKind, setHarnessKind] = useState<HarnessKind | null>(null);
+  const [harnessText, setHarnessText] = useState("");
+  const [harnessCopied, setHarnessCopied] = useState(false);
   const [refineOpen, setRefineOpen] = useState(false);
   // Language
   const [lang, setLang] = useState<LangId>("en");
@@ -185,6 +208,14 @@ export default function Home() {
     if (!result) return [];
     return parseSegments(result.engineered, result.adapter);
   }, [result]);
+
+  // Deterministic recommendation for the current result + chosen format. Pure,
+  // no LLM, no network. Reads the live `outputFormat` so the badge reflects a
+  // format the user just switched to immediately.
+  const recommendation = useMemo<ModelRecommendation | null>(() => {
+    if (!result) return null;
+    return recommendFor(result.archetype, outputFormat);
+  }, [result, outputFormat]);
 
   // Detect Web Speech API availability
   useEffect(() => {
@@ -326,19 +357,42 @@ export default function Home() {
       exampleOverrides: exampleList,
     });
     setResult(r);
+    // Inputs changed → any open harness panel (loop/agent) is now stale.
+    setHarnessKind(null);
+    // `adapter` is a dep so a manual override re-renders the prompt in that
+    // model's dialect. Auto-adopt lives only in run() to avoid a setState cascade.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quality, outputFormat, userConstraints, userExample]);
+  }, [quality, outputFormat, userConstraints, userExample, adapter]);
 
   function run() {
     if (!task.trim()) return;
-    const r = engineer(task.trim(), {
+    setHarnessKind(null); // close any prior loop/agent panel before re-running
+    // Probe once with the current adapter to learn the archetype.
+    const probe = engineer(task.trim(), {
       adapter,
       quality,
       outputFormat,
       userConstraints: constraintsList,
       exampleOverrides: exampleList,
     });
-    setResult(r);
+    // Unless the user overrode the model, adopt the recommendation. If it
+    // differs from the probe adapter, render ONE more time in that model's
+    // native dialect so the pasted prompt matches the badged model.
+    let final = probe;
+    if (!adapterOverridden) {
+      const rec = recommendFor(probe.archetype, outputFormat);
+      if (rec.adapter !== adapter) {
+        setAdapter(rec.adapter);
+        final = engineer(task.trim(), {
+          adapter: rec.adapter,
+          quality,
+          outputFormat,
+          userConstraints: constraintsList,
+          exampleOverrides: exampleList,
+        });
+      }
+    }
+    setResult(final);
     setTimeout(() => {
       document.getElementById("output")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 80);
@@ -369,6 +423,32 @@ export default function Home() {
     return ok;
   }
 
+  // Power-ups: deterministically wrap the engineered prompt into a self-running
+  // loop or a multi-agent workflow. No LLM call, no network — pure harness.ts.
+  function openHarness(kind: HarnessKind) {
+    if (!result) return;
+    if (harnessKind === kind) { setHarnessKind(null); return; } // toggle off
+    const ctx = { archetype: result.classification.primary, outputFormat };
+    const text = kind === "agent"
+      ? buildAgentWorkflow(result.engineered, ctx)
+      : buildLoopPrompt(result.engineered, ctx);
+    setHarnessText(text);
+    setHarnessKind(kind);
+    setHarnessCopied(false);
+  }
+
+  function copyHarness() {
+    if (!harnessText) return;
+    const onSuccess = () => { setHarnessCopied(true); setTimeout(() => setHarnessCopied(false), 2000); };
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(harnessText).then(onSuccess).catch(() => {
+        fallbackCopy(harnessText) && onSuccess();
+      });
+    } else {
+      fallbackCopy(harnessText) && onSuccess();
+    }
+  }
+
   function reset() {
     setTask("");
     setResult(null);
@@ -378,6 +458,9 @@ export default function Home() {
     setQuality("comprehensive");
     setOutputFormat("text");
     setCopied(false);
+    setHarnessKind(null);
+    setHarnessText("");
+    setHarnessCopied(false);
     setTimeout(() => {
       textareaRef.current?.focus();
       document.getElementById("input-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -906,6 +989,60 @@ export default function Home() {
                     {copied ? T("copied") : T("copy_prompt")}
                   </button>
                 </div>
+              </div>
+
+              {/* Power-ups — turn the prompt into a self-running loop or an agent workflow */}
+              <div className="mt-5">
+                <p className="text-[10px] uppercase tracking-wider text-[#8FA6BC] mb-2">
+                  {T("powerups_heading")}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    onClick={() => openHarness("loop")}
+                    className={`text-xs font-semibold rounded-lg px-3 py-2 border transition-colors text-start ${
+                      harnessKind === "loop"
+                        ? "border-[#143352] bg-[#F5F9FC] text-[#0A1F35]"
+                        : "border-[#C4D2E0] bg-white text-[#143352] hover:border-[#143352] hover:bg-[#F5F9FC]"
+                    }`}
+                  >
+                    {T("loop_button")}
+                  </button>
+                  <button
+                    onClick={() => openHarness("agent")}
+                    className={`text-xs font-semibold rounded-lg px-3 py-2 border transition-colors text-start ${
+                      harnessKind === "agent"
+                        ? "border-[#143352] bg-[#F5F9FC] text-[#0A1F35]"
+                        : "border-[#C4D2E0] bg-white text-[#143352] hover:border-[#143352] hover:bg-[#F5F9FC]"
+                    }`}
+                  >
+                    {T("workflow_button")}
+                  </button>
+                </div>
+
+                {harnessKind && (
+                  <div className="mt-3 p-5 bg-white border border-[#C4D2E0] rounded-lg space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs font-semibold text-[#143352] uppercase tracking-wider">
+                        {HARNESS_LABELS[harnessKind]}
+                      </p>
+                      <button
+                        onClick={() => setHarnessKind(null)}
+                        className="text-xs text-[#8FA6BC] hover:text-[#143352] px-2 py-1 transition-colors shrink-0"
+                      >
+                        {T("harness_close")}
+                      </button>
+                    </div>
+                    <pre className="w-full bg-[#F5F9FC] border border-[#C4D2E0] rounded-lg p-3 text-[11px] font-mono text-[#0E1A2A] whitespace-pre-wrap break-words max-h-80 overflow-y-auto" dir="ltr">
+                      {harnessText}
+                    </pre>
+                    <button
+                      onClick={copyHarness}
+                      className="pd-lift px-4 py-2 bg-gradient-to-br from-[#A67C3D] to-[#8a6530] text-white rounded-lg text-xs font-semibold hover:shadow-md hover:shadow-[#A67C3D]/30 min-w-[110px] border border-[#8a6530]/40"
+                    >
+                      {harnessCopied ? T("harness_copied") : T("harness_copy")}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Refine */}

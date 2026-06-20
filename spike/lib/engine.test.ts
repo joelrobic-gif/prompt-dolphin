@@ -65,7 +65,7 @@ check('W1: html injection contains design-token lock', () => {
   const inj = OUTPUT_FORMATS.html.injection;
   assert(/CONSISTENCY DISCIPLINE/.test(inj), 'no CONSISTENCY DISCIPLINE section');
   assert(/custom properties in :root/.test(inj), 'no :root token-lock instruction');
-  assert(/Never improvise new colors/.test(inj), 'no anti-improvisation rule');
+  assert(/Never improvise a new color/.test(inj), 'no anti-improvisation rule');
 });
 
 check('W1: html injection reaches engineered prompt', () => {
@@ -74,10 +74,14 @@ check('W1: html injection reaches engineered prompt', () => {
   assert(r.engineered.includes('contenteditable'), 'contenteditable instruction not in final prompt');
 });
 
-check('W1: html injection has no rigid pixel/hex micro-specs', () => {
+check('W1: html injection is token-driven (prose specifies intent, not rigid values)', () => {
   const inj = OUTPUT_FORMATS.html.injection;
-  assert(!/\d+px/.test(inj), 'pixel values present');
-  assert(!/#[0-9A-Fa-f]{6}/.test(inj), 'hex colors present');
+  // The PROSE drives design via tokens (the real anti-improvisation guarantee).
+  // Concrete px/hex now legitimately live ONLY inside the fenced worked exemplar,
+  // which teaches technique by example — that is the intended high-leverage change.
+  assert(/--c-1/.test(inj), 'no chart-ramp tokens declared');
+  assert(/var\(--/.test(inj), 'charts not instructed to reference tokens');
+  assert(/STYLE REFERENCE/.test(inj), 'worked exemplar missing — px/hex must live inside it, not the prose');
 });
 
 // ---------------------------------------------------------------------------
@@ -190,6 +194,160 @@ check('W7: quick_verdict suppresses deep reasoning', () => {
   assert(r.engineered.includes('does not need deep reasoning'), 'quick_verdict fast-path missing');
   assert(!r.engineered.includes('If extended thinking is available'), 'claude deep cue leaked into quick_verdict');
   assert(!r.engineered.includes('use it with high reasoning effort'), 'chatgpt deep cue leaked into quick_verdict');
+});
+
+// ---------------------------------------------------------------------------
+// Harness: agent workflow + loop builders (lib/harness.ts)
+// ---------------------------------------------------------------------------
+
+import { buildAgentWorkflow, buildLoopPrompt, HARNESS_LABELS } from './harness';
+import { ARCHETYPE_ORDER } from './engine-v2';
+import { TRANSLATIONS } from './i18n';
+
+const HARNESS_TASK = 'Assess the GLP-1 biotech catalysts for our investment committee';
+const eng = engineerV3(HARNESS_TASK, { adapter: 'chatgpt', quality: 'comprehensive', outputFormat: 'html' }).engineered;
+
+check('HARNESS: agent workflow embeds the engineered prompt verbatim', () => {
+  const wf = buildAgentWorkflow(eng, { archetype: 'biotech_investor', outputFormat: 'html' });
+  assert(wf.includes(eng.trim()), 'engineered prompt not embedded as shared task');
+  assert(/AGENT WORKFLOW/.test(wf), 'no AGENT WORKFLOW header');
+});
+
+check('HARNESS: agent workflow is total over ALL archetypes (no crash, non-trivial)', () => {
+  for (const id of ARCHETYPE_ORDER) {
+    const wf = buildAgentWorkflow(eng, { archetype: id, outputFormat: 'html' });
+    assert(wf.length > 400, `${id}: workflow too short (${wf.length})`);
+    assert(/AGENT \d+ —/.test(wf), `${id}: no agent cards rendered`);
+    assert(/ORCHESTRATION/.test(wf), `${id}: no orchestration section`);
+  }
+});
+
+check('HARNESS: domain archetypes get bespoke chains (not the default)', () => {
+  const trading = buildAgentWorkflow(eng, { archetype: 'trading_system', outputFormat: 'text' });
+  assert(/Kill-switch|Backtest|Signal Designer/.test(trading), 'trading_system did not get its bespoke chain');
+  const dd = buildAgentWorkflow(eng, { archetype: 'due_diligence', outputFormat: 'text' });
+  assert(/Bear-case|Evidence Gatherer|deal thesis/i.test(dd), 'due_diligence did not get its bespoke chain');
+});
+
+check('HARNESS: default chain covers a generic archetype', () => {
+  const wf = buildAgentWorkflow(eng, { archetype: 'general', outputFormat: 'text' });
+  assert(/Planner/.test(wf) && /Editor/.test(wf), 'default chain missing Planner/Editor');
+});
+
+check('HARNESS: agent workflow gives a way to run it (orchestrator + chat)', () => {
+  const wf = buildAgentWorkflow(eng, { archetype: 'biotech_investor', outputFormat: 'html' });
+  assert(/n8n|LangGraph|sub-agents/i.test(wf), 'no orchestrator run instructions');
+  assert(/paste this whole block/i.test(wf), 'no single-chat run instructions');
+});
+
+check('HARNESS: loop builder wraps the prompt + states bounded rounds', () => {
+  const lp = buildLoopPrompt(eng, { archetype: 'biotech_investor', outputFormat: 'html' });
+  assert(lp.includes(eng), 'loop did not embed the engineered brief');
+  assert(/IMPROVE-AND-RECHECK LOOP/.test(lp), 'no loop header');
+  assert(/Score trail/.test(lp), 'no score-trail instruction');
+});
+
+check('HARNESS: labels exist for both kinds and are jargon-free', () => {
+  assert(HARNESS_LABELS.loop && HARNESS_LABELS.agent, 'missing harness labels');
+  for (const v of Object.values(HARNESS_LABELS)) {
+    assert(!/xml|few-shot|chain-of-thought|prefill|L99/i.test(v), `jargon in harness label: ${v}`);
+  }
+});
+
+check('HARNESS: workflow WRAPPER carries no prompt-engineering jargon', () => {
+  // Scope to the harness's own added scaffolding (clean embedded brief) — the
+  // user's engineered prompt is a separate, already-jargon-guarded concern.
+  const wf = buildAgentWorkflow('PLAIN BRIEF BODY — no jargon here.', { archetype: 'pharma_regulatory', outputFormat: 'word' });
+  assert(!/few-shot|chain-of-thought|xml tag|prefill|\bL99\b/i.test(wf), 'jargon leaked into workflow wrapper');
+});
+
+// ---------------------------------------------------------------------------
+// HTML injection — visualization playbook contract (engine-v2.ts)
+// ---------------------------------------------------------------------------
+
+check('HTML-VIZ: injection mandates visualization + delivery floor', () => {
+  const inj = OUTPUT_FORMATS.html.injection;
+  assert(/DATA VISUALIZATION|VISUALIZE/.test(inj), 'no visualization mandate');
+  assert(/DELIVERY FLOOR/.test(inj), 'no delivery floor');
+  assert(inj.includes('<!DOCTYPE html>'), 'no DOCTYPE in constraints');
+});
+
+check('HTML-VIZ: fenced few-shot exemplar present + technique markers', () => {
+  const inj = OUTPUT_FORMATS.html.injection;
+  assert(/STYLE REFERENCE/.test(inj), 'no fenced style reference');
+  assert(/your charts must use ONLY the user's data/i.test(inj), 'no anti-echo guard');
+  assert(/viewBox/.test(inj), 'no viewBox technique marker');
+  assert(/points=/.test(inj), 'no polyline points marker');
+  assert(/stroke-dasharray/.test(inj), 'no donut dasharray technique');
+});
+
+check('HTML-VIZ: dark-mode re-declares the chart accent token', () => {
+  const inj = OUTPUT_FORMATS.html.injection;
+  assert(/prefers-color-scheme:?\s*dark/.test(inj), 'no dark-mode block');
+  // --c-1 declared in :root AND re-declared in the dark block = >= 2 occurrences
+  assert((inj.match(/--c-1:/g) || []).length >= 2, 'chart accent not re-declared for dark mode');
+});
+
+check('HTML-VIZ: revision must-fixes present (numeric consistency, one-scale, hex text fills, conditional editable, KPI discipline)', () => {
+  const inj = OUTPUT_FORMATS.html.injection;
+  assert(/NUMERIC CONSISTENCY/.test(inj), 'prose-number consistency rule missing');
+  assert(/ONE SCALE PER CHART/.test(inj), 'single-scale axis rule missing');
+  assert(/never fill="#fff"/.test(inj), 'hardcoded text-fill ban missing');
+  assert(/OMIT contenteditable|UNLESS the document is a formal or confidential/.test(inj), 'conditional contenteditable missing');
+  assert(/DISTINCT figure with genuine information value/.test(inj), 'KPI-card discipline missing');
+});
+
+check('HTML-VIZ: retained hard constraints survive', () => {
+  const inj = OUTPUT_FORMATS.html.injection;
+  assert(/contenteditable/.test(inj), 'editable instruction dropped');
+  assert(/Output ONLY the HTML/.test(inj), 'output-only rule dropped');
+  assert(/NO JavaScript/i.test(inj), 'no-JS rule dropped');
+  assert(/DO NOT FABRICATE|never invent|use ONLY the user/i.test(inj), 'anti-fabrication dropped');
+});
+
+// ---------------------------------------------------------------------------
+// Guards: new i18n keys are jargon-free and emoji-free (charter ban #2)
+// ---------------------------------------------------------------------------
+
+check('GUARD: new harness i18n keys are emoji-free + jargon-free', () => {
+  const newKeys = ['powerups_heading', 'loop_button', 'workflow_button', 'harness_copy', 'harness_copied', 'harness_close'];
+  for (const k of newKeys) {
+    const v = (TRANSLATIONS.en as Record<string, string>)[k];
+    assert(v && v.length > 0, `missing en value for ${k}`);
+    assert(!/\p{Extended_Pictographic}/u.test(v), `emoji in new UI string ${k}: ${v}`);
+    assert(!/xml|few-shot|chain-of-thought|prompt engineering|context window|L99/i.test(v), `jargon in ${k}: ${v}`);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// DATA_VIZ_DIRECTIVE — chart mandate extended to document-class formats
+// ---------------------------------------------------------------------------
+
+const VIZ_MARK = 'DATA VISUALIZATION (this is a data-bearing deliverable';
+
+check('VIZ-DIR: data-bearing archetype + doc format gets the chart mandate', () => {
+  for (const [arch, fmt] of [['data_analysis', 'word'], ['biotech_investor', 'powerpoint'], ['due_diligence', 'pdf_1pager'], ['trading_system', 'research_report']] as const) {
+    const r = engineerV3('Analyze the numbers and report', { adapter: 'chatgpt', quality: 'comprehensive', outputFormat: fmt, archetype: arch });
+    assert(r.engineered.includes(VIZ_MARK), `${arch}/${fmt}: viz directive missing`);
+    assert(/AT LEAST 3 DIFFERENT chart types/.test(r.engineered), `${arch}/${fmt}: variety rule missing`);
+  }
+});
+
+check('VIZ-DIR: non-data archetype does NOT get the directive', () => {
+  const r = engineerV3('Write a note to my VP', { adapter: 'chatgpt', quality: 'comprehensive', outputFormat: 'word', archetype: 'executive_email' });
+  assert(!r.engineered.includes(VIZ_MARK), 'viz directive leaked into a non-data archetype');
+});
+
+check('VIZ-DIR: data-only formats (csv/json) are excluded', () => {
+  for (const fmt of ['csv', 'json'] as const) {
+    const r = engineerV3('Analyze the numbers', { adapter: 'chatgpt', quality: 'comprehensive', outputFormat: fmt, archetype: 'data_analysis' });
+    assert(!r.engineered.includes(VIZ_MARK), `${fmt}: viz directive should not apply to data-only formats`);
+  }
+});
+
+check('VIZ-DIR: directive never invents data (anti-fabrication present)', () => {
+  const r = engineerV3('Analyze the numbers and report', { adapter: 'chatgpt', quality: 'comprehensive', outputFormat: 'word', archetype: 'data_analysis' });
+  assert(/Never invent values to fill a chart|directly derivable/.test(r.engineered), 'viz directive missing anti-fabrication');
 });
 
 // ---------------------------------------------------------------------------

@@ -61,9 +61,15 @@ export type TranslationKey =
   | 'footer_oss' | 'footer_no_cookies' | 'footer_legal'
   | 'lang_picker_label'
   | 'format_heading' | 'format_section_title' | 'format_section_subtitle' | 'format_section_cta'
-  | 'format_what_you_get' | 'format_ideal_for' | 'format_how_to_download' | 'format_chosen_note';
+  | 'format_what_you_get' | 'format_ideal_for' | 'format_how_to_download' | 'format_chosen_note'
+  | 'powerups_heading' | 'loop_button' | 'workflow_button'
+  | 'harness_copy' | 'harness_copied' | 'harness_close';
 
-export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
+// `en` is the exhaustive source of truth (every key required). The other 13
+// locales may legally omit any key; t()'s `?? TRANSLATIONS.en[key]` fallback
+// carries untranslated keys at runtime, so new English-only keys compile.
+export const TRANSLATIONS: { en: Required<Record<TranslationKey, string>> }
+  & Record<Exclude<LangId, 'en'>, Partial<Record<TranslationKey, string>>> = {
   en: {
     hero_lead: 'Your AI is only as good as',
     hero_emphasis: 'your prompt.',
@@ -136,6 +142,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: 'Ideal for',
     format_how_to_download: 'How to use it',
     format_chosen_note: 'Format applied — the engineered prompt now asks for this output structure.',
+    powerups_heading: 'Do more with this prompt',
+    loop_button: 'Create an improve-and-recheck loop',
+    workflow_button: 'Create an agent workflow',
+    harness_copy: 'Copy this',
+    harness_copied: 'Copied',
+    harness_close: 'Close',
   },
   fr: {
     hero_lead: 'Votre IA ne vaut que ce que vaut',
@@ -209,6 +221,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: 'Idéal pour',
     format_how_to_download: 'Comment l\'utiliser',
     format_chosen_note: 'Format appliqué — le prompt construit demande maintenant cette structure de sortie.',
+    powerups_heading: 'Aller plus loin avec ce prompt',
+    loop_button: 'Créer une boucle d\'amélioration continue',
+    workflow_button: 'Créer une équipe d\'agents IA',
+    harness_copy: 'Copier',
+    harness_copied: 'Copié',
+    harness_close: 'Fermer',
   },
   es: {
     hero_lead: 'Tu IA solo vale lo que vale',
@@ -282,6 +300,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: 'Ideal para',
     format_how_to_download: 'Cómo usarlo',
     format_chosen_note: 'Formato aplicado — el prompt construido ahora pide esta estructura de salida.',
+    powerups_heading: 'Saca más partido a este prompt',
+    loop_button: 'Crear un ciclo de mejora continua',
+    workflow_button: 'Crear un equipo de agentes de IA',
+    harness_copy: 'Copiar',
+    harness_copied: 'Copiado',
+    harness_close: 'Cerrar',
   },
   de: {
     hero_lead: 'Deine KI ist nur so gut wie',
@@ -355,6 +379,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: 'Ideal für',
     format_how_to_download: 'So nutzt du es',
     format_chosen_note: 'Format angewendet — der gebaute Prompt fragt jetzt nach dieser Ausgabestruktur.',
+    powerups_heading: 'Mehr aus diesem Prompt herausholen',
+    loop_button: 'Verbesserungsschleife erstellen',
+    workflow_button: 'KI-Agententeam erstellen',
+    harness_copy: 'Kopieren',
+    harness_copied: 'Kopiert',
+    harness_close: 'Schließen',
   },
   it: {
     hero_lead: 'La tua IA vale solo quanto',
@@ -428,6 +458,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: 'Ideale per',
     format_how_to_download: 'Come usarlo',
     format_chosen_note: 'Formato applicato — il prompt costruito ora richiede questa struttura di output.',
+    powerups_heading: 'Fai di più con questo prompt',
+    loop_button: 'Crea un ciclo di miglioramento continuo',
+    workflow_button: 'Crea un team di agenti IA',
+    harness_copy: 'Copia',
+    harness_copied: 'Copiato',
+    harness_close: 'Chiudi',
   },
   pt: {
     hero_lead: 'A sua IA é só tão boa quanto',
@@ -501,6 +537,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: 'Ideal para',
     format_how_to_download: 'Como usá-lo',
     format_chosen_note: 'Formato aplicado — o prompt construído pede agora esta estrutura de saída.',
+    powerups_heading: 'Faça mais com este prompt',
+    loop_button: 'Criar um ciclo de melhoria contínua',
+    workflow_button: 'Criar uma equipe de agentes de IA',
+    harness_copy: 'Copiar',
+    harness_copied: 'Copiado',
+    harness_close: 'Fechar',
   },
   nl: {
     hero_lead: 'Je AI is alleen zo goed als',
@@ -574,6 +616,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: 'Ideaal voor',
     format_how_to_download: 'Hoe te gebruiken',
     format_chosen_note: 'Formaat toegepast — de gebouwde prompt vraagt nu om deze uitvoerstructuur.',
+    powerups_heading: 'Haal meer uit deze prompt',
+    loop_button: 'Verbeterlus maken',
+    workflow_button: 'Een team van AI-agents maken',
+    harness_copy: 'Kopiëren',
+    harness_copied: 'Gekopieerd',
+    harness_close: 'Sluiten',
   },
   ja: {
     hero_lead: 'あなたのAIの実力は',
@@ -647,6 +695,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: 'こんな人に最適',
     format_how_to_download: '使い方',
     format_chosen_note: '形式を適用しました——構築されたプロンプトはこの出力構造を要求します。',
+    powerups_heading: 'このプロンプトをさらに活用する',
+    loop_button: '改善と再チェックの反復を作成',
+    workflow_button: 'AIエージェントチームを作成',
+    harness_copy: 'コピー',
+    harness_copied: 'コピーしました',
+    harness_close: '閉じる',
   },
   'zh-CN': {
     hero_lead: '你的 AI 上限取决于',
@@ -720,6 +774,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: '适用人群',
     format_how_to_download: '如何使用',
     format_chosen_note: '已应用格式——构建出的提示词现在要求这种输出结构。',
+    powerups_heading: '用这条提示词做更多事',
+    loop_button: '创建自动改进循环',
+    workflow_button: '创建 AI 智能体团队',
+    harness_copy: '复制',
+    harness_copied: '已复制',
+    harness_close: '关闭',
   },
   'zh-TW': {
     hero_lead: '你的 AI 上限取決於',
@@ -793,6 +853,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: '適用對象',
     format_how_to_download: '如何使用',
     format_chosen_note: '已套用格式——建構出的提示詞現在要求這種輸出結構。',
+    powerups_heading: '用這則提示詞做更多事',
+    loop_button: '建立自動改進循環',
+    workflow_button: '建立 AI 智慧代理團隊',
+    harness_copy: '複製',
+    harness_copied: '已複製',
+    harness_close: '關閉',
   },
   ko: {
     hero_lead: '당신의 AI는',
@@ -866,6 +932,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: '이런 분에게 좋아요',
     format_how_to_download: '사용 방법',
     format_chosen_note: '형식 적용됨 — 만들어진 프롬프트가 이제 이 출력 구조를 요청합니다.',
+    powerups_heading: '이 프롬프트로 더 많은 작업 하기',
+    loop_button: '개선·재검토 반복 만들기',
+    workflow_button: 'AI 에이전트 팀 만들기',
+    harness_copy: '복사',
+    harness_copied: '복사됨',
+    harness_close: '닫기',
   },
   ar: {
     hero_lead: 'ذكاؤك الاصطناعي بقدر',
@@ -939,6 +1011,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: 'مثالي لـ',
     format_how_to_download: 'كيف تستخدمه',
     format_chosen_note: 'تم تطبيق الصيغة — البرومبت المبني يطلب الآن هذا الهيكل من المخرجات.',
+    powerups_heading: 'حقّق المزيد بهذا الموجّه',
+    loop_button: 'إنشاء حلقة تحسين ومراجعة',
+    workflow_button: 'إنشاء فريق من وكلاء الذكاء الاصطناعي',
+    harness_copy: 'نسخ',
+    harness_copied: 'تم النسخ',
+    harness_close: 'إغلاق',
   },
   ru: {
     hero_lead: 'Ваш ИИ настолько хорош, насколько',
@@ -1012,6 +1090,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: 'Идеально для',
     format_how_to_download: 'Как использовать',
     format_chosen_note: 'Формат применён — построенный промпт теперь запрашивает эту структуру вывода.',
+    powerups_heading: 'Используйте этот промпт по максимуму',
+    loop_button: 'Создать цикл улучшения и проверки',
+    workflow_button: 'Создать команду ИИ-агентов',
+    harness_copy: 'Копировать',
+    harness_copied: 'Скопировано',
+    harness_close: 'Закрыть',
   },
   pl: {
     hero_lead: 'Twoja AI jest tak dobra jak',
@@ -1085,6 +1169,12 @@ export const TRANSLATIONS: Record<LangId, Record<TranslationKey, string>> = {
     format_ideal_for: 'Idealne dla',
     format_how_to_download: 'Jak używać',
     format_chosen_note: 'Format zastosowany — zbudowany prompt prosi teraz o tę strukturę wyjścia.',
+    powerups_heading: 'Zrób więcej z tym promptem',
+    loop_button: 'Utwórz pętlę ulepszania i weryfikacji',
+    workflow_button: 'Utwórz zespół agentów AI',
+    harness_copy: 'Kopiuj',
+    harness_copied: 'Skopiowano',
+    harness_close: 'Zamknij',
   },
 };
 

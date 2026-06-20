@@ -596,40 +596,101 @@ export const OUTPUT_FORMATS: Record<OutputFormatId, OutputFormat> = {
     downloadTruth: 'Copy the HTML, save as `report.html`, double-click — opens as a website in your browser. Share via email, host on any static site, or print to PDF.',
     injection: `Format as a COMPLETE, SINGLE-FILE, PUBLICATION-GRADE HTML5 DOCUMENT.
 
-DESIGN BENCHMARK: The Information, Stratechery, Bloomberg, The Pudding. The reader's first impression should be "this was professionally designed."
+DESIGN BENCHMARK: The Information, Stratechery, Bloomberg, The Pudding. The reader's first impression should be "this was professionally designed AND the data is beautifully visualized."
 
 TECHNICAL CONSTRAINTS (non-negotiable):
 - Single self-contained file. ALL CSS in one <style> block. Zero external stylesheets, fonts, scripts, or CDN links.
-- Make the document editable: add contenteditable="true" on the <body> or <main> element so the user can click and edit any text directly in the browser before saving or printing.
+- Make body text editable with contenteditable="true" on the <body> or <main> element — UNLESS the document is a formal or confidential deliverable (investment-committee brief, board memo, legal, regulatory): for those, OMIT contenteditable so the published document cannot be trivially altered.
 - Must render correctly when opened via file:// in any modern browser.
+- Begin the document with <!DOCTYPE html><html lang="en"> and end it with a single closing </html>.
 - Output ONLY the HTML document. No prose preface, no code fences.
-- Well-formed HTML5. CSS-only — no JavaScript.
+- Well-formed HTML5. CSS-only — NO JavaScript anywhere. Every chart is a STATIC inline <svg>, which needs no JavaScript, renders from file://, and prints cleanly.
+
+DELIVERY FLOOR (read first — quality over quantity):
+- If you can only produce two or three charts well, produce those flawlessly rather than many broken ones. A few correct, legible charts beat a dozen malformed ones.
+- Close every tag you open. If you risk running out of room, finish the current chart cleanly and end the document with </html> rather than stopping mid-chart — a truncated file renders blank.
 
 DESIGN DIRECTION (use your best judgment on specific values):
-- Editorial typography: elegant serif headlines, clean sans-serif body text, monospace for data. System font stacks only.
+- Editorial typography: elegant serif headlines, clean sans-serif body text, monospace for data and figures. System font stacks only.
 - Generous whitespace — let content breathe. Comfortable reading measure, ample vertical rhythm between sections.
 - Refined neutral palette with one tasteful accent hue. Support light and dark mode via prefers-color-scheme.
 - Strong visual hierarchy: clear distinction between headline, section headings, body text, and captions.
 - Comfortable line height and letter spacing for long-form reading.
 
 CONSISTENCY DISCIPLINE:
-- Declare the full design system ONCE as CSS custom properties in :root — palette, type scale, spacing scale — then reference only those tokens throughout. Never improvise new colors or sizes mid-document.
+- Declare the full design system ONCE as CSS custom properties in :root — palette, type scale, spacing scale, AND a chart-color ramp (e.g. --c-1 … --c-6 plus --c-grid, --c-axis, --c-label) — then reference only those tokens throughout, INCLUDING inside every <svg> (use fill="var(--c-2)" / stroke="var(--c-axis)" etc.). Never improvise a new color or size mid-document, and never hard-code a raw hex value inside an SVG — this INCLUDES text and label fills (use fill="var(--c-label)" or fill="var(--ink)", never fill="#fff"); white-on-accent labels go illegible when the chart ramp lightens in dark mode.
+- In the dark-mode block (@media (prefers-color-scheme: dark)), RE-DECLARE the chart ramp tokens (--c-1 … --c-6, --c-grid, --c-axis, --c-label) alongside the palette, so every chart adapts to dark mode automatically. Charts that reference tokens will then flip with the theme — do not author separate SVGs per theme.
 - Prefer the classic, restrained choice over the experimental one at every design decision. A timeless editorial layout beats a novel one.
+
+DATA VISUALIZATION (MANDATORY whenever the content contains any numbers, comparisons, trends, rankings, proportions, or sequences):
+- Render quantitative content as inline <svg> charts, NOT only as tables. A table MAY accompany a chart, but any data that can be visualized MUST be visualized.
+- Pick the chart that fits the data shape — choose by the data, never default to one type:
+  - Column / bar — compare values across a handful of categories.
+  - Grouped or stacked bar — two-to-three series across categories, or part-to-whole across categories.
+  - Line or area — a trend over time or an ordered sequence.
+  - Donut or treemap — composition / share of a whole (treemap when there are many parts).
+  - Horizontal bar-in-row — a proportional bar embedded inside a ranked table row, so the table doubles as a chart.
+  - Sparkline — a tiny inline trend beside a number, inside a stat card, or in a table cell.
+  - KPI stat-card — a large numeral with label, unit, and optional delta; group 3-4 as a top row.
+  - Timeline / Gantt — events or phases laid along a time axis.
+  - Slopegraph or dumbbell — a before-after or A-vs-B comparison across items.
+  - Gauge / progress arc — a single value against a target or a 0-100% scale.
+  - Heatmap grid — a value-by-two-dimensions matrix encoded as cell shade.
+  - Simple scatter — relationship between two numeric variables.
+- VARIETY IS REQUIRED: when the data supports it, include AT LEAST 3 DIFFERENT chart types. Never repeat one chart type for everything. Match variety to the data, not to decoration.
+- EVERY chart must:
+  - carry a short title and, where applicable, axis labels with units;
+  - label the actual values (data labels on bars/points, or a readable axis the reader can map from);
+  - be accessible: wrap the <svg> with role="img" and include a <title> and a <desc> summarizing what it shows;
+  - draw exclusively from the :root chart tokens (the --c-* ramp) so it matches the palette and adapts to light/dark mode;
+  - size responsively via a viewBox plus width:100% (no fixed pixel widths that overflow on mobile);
+  - print cleanly — never rely on hover, animation, or interactivity to convey meaning.
+- TASTEFUL, NOT GAUDY: flat 2D only. No 3D, no drop shadows on data marks, no rainbow spectrum, no more than ~6 series colors, no chartjunk. Editorial restraint — a Bloomberg or Economist chart, not a dashboard skin.
+- DO NOT FABRICATE chart data. Chart ONLY values actually present in the content or directly derivable from it (sums, shares, deltas, simple rates). If a number is not in the data, it is not in the chart. Never invent points to fill out a trend.
+- NUMERIC CONSISTENCY (applies to PROSE too, not just charts): every figure stated anywhere — headline, lede, KPI card, caption, body — must equal the dataset or a value directly derivable from it. Before finalizing, reconcile every headline/summary number against the underlying rows; they must match exactly. If the supplied data is internally inconsistent (e.g. cash + positions exceeds the stated total), surface the discrepancy explicitly in a note rather than silently asserting one figure as fact.
 
 STRUCTURE:
 - Hero section at top: eyebrow label, compelling headline, one-sentence summary, estimated reading time.
+- A row of 3-4 KPI stat-cards directly under the hero when headline metrics exist. Each card carries a DISTINCT figure with genuine information value — never restate the same number twice on one card (value and sub-label both reading the same), and never conflate distinct quantities (a total, deployed capital, and exposure are different numbers; label each precisely).
 - Table of contents for documents over 1500 words.
-- Elegant section dividers, pull quotes for key insights, polished data tables with aligned numerics.
-- Cards with subtle borders and soft shadows for grouped content.
-- Smooth hover states, accessible focus rings, scroll behavior.
-- Responsive: beautiful on desktop, fully readable on mobile, clean print stylesheet.
+- Elegant section dividers, pull quotes for key insights, polished data tables with aligned numerics — each data-bearing section paired with its fitting chart from the taxonomy above.
+- Cards with subtle borders and soft shadows for grouped content (shadows on cards are fine; never on the data marks themselves).
+- Accessible focus rings, comfortable scroll behavior.
+- Responsive: beautiful on desktop, fully readable on mobile, clean print stylesheet. Charts reflow and stay legible at narrow widths.
 
 CONTENT STANDARDS:
 - Cite every factual claim inline. Footer sources list with publication, date, URL.
 - No invented quotes, statistics, URLs, or images.
 - No marketing fluff ("revolutionary", "game-changing", "best-in-class").
 
-Produce something a designer would be proud to ship.`,
+SVG TECHNIQUE (so charts render correctly):
+- Every chart: <svg viewBox="0 0 W H" preserveAspectRatio="xMidYMid meet" role="img"> with a <title> first child stating in one plain sentence what it shows. Set width via CSS (100% / max-width), NOT a fixed pixel width/height, so it stays crisp and prints sharp.
+- Remember SVG y grows downward: bars grow up from a baseline (y = chartH - height); line points map value to pixel as y = chartH - (value-min)/(max-min)*chartH.
+- ONE SCALE PER CHART: compute a single value-to-pixel scale and derive BOTH the plotted marks AND every axis tick / gridline from it. Never hand-place ticks, dots, or bars at eyeballed pixel positions — a tick labeled -250 must sit at exactly the same px/unit as the bars. Set axis bounds to the actual data min/max, not round numbers that waste axis space or misstate the range.
+- Bars/columns: one <rect> each, sharing ONE scale across the series. Lines: <polyline fill="none" stroke=... points="x,y ...">. Area: a filled <path> closed to the baseline with the line stroked on top. Donut: <circle fill="none"> with stroke-width + stroke-dasharray "segment gap" + stroke-dashoffset to place each segment (rotate the group -90deg to start at top) — prefer this over hand-computed arc paths.
+
+STYLE REFERENCE — copy the TECHNIQUE shown below (token-driven SVG, viewBox, dark-mode re-declared chart tokens), never the numbers or labels (they are placeholders). Your charts must use ONLY the user's data:
+<style>:root{--paper:#FDFCF8;--ink:#1A1A1A;--muted:#555;--rule:#D8D2C4;--c-1:#1F2F4A;--c-2:#A67C3D}
+@media (prefers-color-scheme:dark){:root{--paper:#15171B;--ink:#ECEAE3;--muted:#9A968C;--rule:#33373E;--c-1:#7FA8E0;--c-2:#E0B870}}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{border:1px solid var(--rule);border-radius:8px;padding:14px}.kpi b{font-size:2rem;font-family:ui-monospace,monospace;color:var(--ink)}
+.kpi span{display:block;color:var(--muted);font-size:.8rem}.chart{width:100%;height:auto;max-width:560px}</style>
+<div class="kpis"><div class="kpi"><b>00</b><span>Example metric label</span></div>
+<div class="kpi"><b>00%</b><span>Example metric label</span>
+<svg viewBox="0 0 100 24" class="chart" role="img"><title>Example sparkline — replace with the user's series</title>
+<polyline fill="none" stroke="var(--c-2)" stroke-width="2" points="0,20 25,15 50,16 75,8 100,5"/>
+<circle cx="100" cy="5" r="2.5" fill="var(--c-2)"/></svg></div></div>
+<svg viewBox="0 0 320 96" class="chart" role="img" preserveAspectRatio="xMidYMid meet">
+<title>Example horizontal bars — replace categories and values with the user's data</title>
+<text x="78" y="22" text-anchor="end" font-size="11" fill="var(--muted)">Item A</text>
+<rect x="84" y="12" width="120" height="14" rx="2" fill="var(--c-1)"/><text x="210" y="22" font-size="11" fill="var(--ink)">00</text>
+<text x="78" y="46" text-anchor="end" font-size="11" fill="var(--muted)">Item B</text>
+<rect x="84" y="36" width="168" height="14" rx="2" fill="var(--c-1)"/><text x="258" y="46" font-size="11" fill="var(--ink)">00</text>
+<text x="78" y="70" text-anchor="end" font-size="11" fill="var(--muted)">Item C</text>
+<rect x="84" y="60" width="72" height="14" rx="2" fill="var(--c-1)"/><text x="162" y="70" font-size="11" fill="var(--ink)">00</text></svg>
+END REFERENCE — the numbers and labels above are placeholders. Your charts must use ONLY the user's data.
+
+Produce something a designer at The Pudding would be proud to ship — editorial prose AND original data graphics, in one file.`,
   },
   pdf_1pager: {
     id: 'pdf_1pager',

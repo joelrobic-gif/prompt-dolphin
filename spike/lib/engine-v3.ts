@@ -618,6 +618,40 @@ interface BuildSpineV3Args {
   exampleOverrides?: string[];
 }
 
+// ============================================================================
+// DATA-VIZ DIRECTIVE — appended to the format block for data-bearing archetypes
+// so the deliverable carries original charts in ANY document-class format, not
+// only when the user explicitly picks HTML. Pure deterministic string; no LLM
+// call, no new deps. (html already carries the full viz spec in its injection;
+// this reinforces it there and extends the mandate to the other doc formats.)
+// ============================================================================
+
+/** Archetypes quantitative enough to warrant charts in a document deliverable. */
+export const DATA_BEARING_ARCHETYPES: ReadonlySet<ArchetypeId> = new Set<ArchetypeId>([
+  'data_analysis',
+  'trading_system',
+  'biotech_investor',
+  'due_diligence',
+  'research_synthesis',
+]);
+
+/**
+ * Visualization mandate reused across document-class formats. For HTML it
+ * reinforces OUTPUT_FORMATS.html.injection; for word/powerpoint/pdf/report/excel
+ * it tells the model to render or precisely specify real charts (inline <svg>
+ * where the format renders markup, an explicit chart spec where it does not).
+ * Never fabricates data.
+ */
+export const DATA_VIZ_DIRECTIVE: string = [
+  'DATA VISUALIZATION (this is a data-bearing deliverable — charts are required, not optional):',
+  '- Visualize quantitative content; do not present numbers as tables alone. Where the output format renders markup (e.g. HTML), draw charts as STATIC inline <svg> (no JavaScript). Where it does not, specify each chart precisely (type, axes, encoded fields, value labels).',
+  '- Choose the chart that fits the data shape: column/bar for category comparison, grouped/stacked bar for multi-series, line/area for trends over time, donut/treemap for composition, horizontal bar-in-row for ranked tables, sparklines for inline trends, KPI stat-cards for headline numerics, timeline/Gantt for sequences, slopegraph/dumbbell for before-after, gauge/arc for a value-vs-target, heatmap for a matrix, scatter for a two-variable relationship.',
+  '- Include AT LEAST 3 DIFFERENT chart types when the data supports it. Never repeat one chart type for everything.',
+  '- Every chart is titled, axis-labeled, value-labeled, and accessible (role="img" with <title>/<desc> when SVG). Use the document palette tokens, not ad-hoc colors.',
+  '- Tasteful and editorial: flat 2D, at most ~6 series colors, no 3D, no rainbow, no chartjunk.',
+  '- Chart ONLY data actually present or directly derivable (sums, shares, deltas, rates). Never invent values to fill a chart.',
+].join('\n');
+
 export function buildSpineV3(args: BuildSpineV3Args): SpineV3 {
   const { task, profile, classification, quality, outputFormat, adapter, userConstraints = [], exampleOverrides = [] } = args;
   const primaryArch = ARCHETYPES[classification.primary];
@@ -693,6 +727,15 @@ export function buildSpineV3(args: BuildSpineV3Args): SpineV3 {
     }
   } else {
     formatParts.push(primaryArch.format);
+  }
+  // Data-bearing archetype + document-class format → mandate original charts.
+  // Deterministic string append; no LLM call, no UI change, no added click.
+  // (html already carries the full viz spec in its injection; this guarantees
+  // the mandate also reaches word/powerpoint/pdf_1pager/research_report/excel/
+  // power_bi and reinforces it for html. csv/json are data-only — excluded.)
+  const VIZ_FORMATS: OutputFormatId[] = ['html', 'word', 'powerpoint', 'pdf_1pager', 'research_report', 'excel', 'power_bi'];
+  if (DATA_BEARING_ARCHETYPES.has(classification.primary) && VIZ_FORMATS.includes(outputFormat)) {
+    formatParts.push(DATA_VIZ_DIRECTIVE);
   }
   // Output priming: lock the first characters of the response so the model
   // starts with the deliverable instead of preamble.
