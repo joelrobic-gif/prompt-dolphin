@@ -3,14 +3,14 @@ import type { NextConfig } from "next";
 // CSP policy: connect-src 'self' (only first-party prefetch/image-opt, no external destinations)
 // script-src 'self' 'unsafe-inline' for Next.js hydration bootstrap (no external scripts loaded)
 // Result: zero third-party exfiltration possible. User content never leaves the device.
-// img-src adds Unsplash + Picsum CDN hosts for the random hero rotation.
-// These hosts serve CC0-licensed images only. No user content goes outbound.
+// img-src is first-party only: the hero image ships with the app (public/brand/).
+// No third-party image hosts are allowed anymore.
 // (source.unsplash.com removed — Unsplash deprecated it mid-2024.)
 const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https://images.unsplash.com https://picsum.photos https://fastly.picsum.photos",
+  "img-src 'self' data:",
   "connect-src 'self'",
   "frame-ancestors 'none'",
   "form-action 'none'",
@@ -31,13 +31,6 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "images.unsplash.com" },
-      { protocol: "https", hostname: "picsum.photos" },
-      { protocol: "https", hostname: "fastly.picsum.photos" },
-    ],
-  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

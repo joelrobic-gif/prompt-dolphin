@@ -24,7 +24,7 @@ export default function PrivacyPage() {
           <h1 className="text-4xl font-serif text-[#0E1A2A] mb-3" style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}>
             Plain language. One page.
           </h1>
-          <p className="text-xs text-[#8FA6BC]">Last updated: 2026-05-17</p>
+          <p className="text-xs text-[#8FA6BC]">Last updated: 2026-07-12</p>
         </header>
 
         <article className="text-[#0E1A2A] leading-relaxed space-y-8">
@@ -63,12 +63,15 @@ export default function PrivacyPage() {
             </h2>
             <ul className="text-sm space-y-2 list-disc pl-5">
               <li>
-                <strong className="text-[#143352]">Page views</strong> — timestamp, page path, country, and device type via self-hosted Plausible analytics. No cookies, no cross-site tracking, no user ID, no content.
+                <strong className="text-[#143352]">Nothing, at the moment</strong> - the app currently runs no analytics of any kind. No page-view tracking, no cookies, no user ID, no content. The only server-side traces are the standard, short-lived hosting logs every website produces.
               </li>
               <li>
-                <strong className="text-[#143352]">Usage counter</strong> — number of prompts generated this month, stored only in your browser's localStorage. We cannot read it. Used only to enforce the Free tier limit.
+                <strong className="text-[#143352]">Language preference</strong> - your chosen UI language is saved in your browser's localStorage (key <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">pd_lang</code>). It never leaves your device. We cannot read it.
               </li>
             </ul>
+            <p className="text-sm mt-3 text-[#4A5A6E]">
+              If we ever add privacy-preserving aggregate analytics (for example self-hosted page-view counts), we will update this page first, and it will never include anything you type.
+            </p>
           </section>
 
           <section>
@@ -95,8 +98,8 @@ export default function PrivacyPage() {
             </h2>
             <ul className="text-sm space-y-1 list-disc pl-5">
               <li>Your prompt content: not stored. Lives in browser RAM until you close the tab.</li>
-              <li>Usage counter: stored only in your browser. Cleared when you clear browser data.</li>
-              <li>Analytics (page views, anonymous): retained for 12 months in aggregate form, then deleted.</li>
+              <li>Language preference: stored only in your browser. Cleared when you clear browser data.</li>
+              <li>Analytics: none collected, so nothing is retained.</li>
             </ul>
           </section>
 

@@ -2,6 +2,9 @@
 // Layered on top of engine-v2's archetypes/adapters/quality registries.
 // MIT License — Robic Direct Inc.
 
+// Single source of truth for the user-visible engine version (footer, feedback payload).
+export const ENGINE_VERSION = '3.0.0';
+
 import {
   ARCHETYPES,
   ADAPTERS,

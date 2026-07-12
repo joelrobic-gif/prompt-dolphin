@@ -77,17 +77,32 @@ export default function TrustPage() {
                 <a href="https://github.com/joelrobic-gif/prompt-dolphin" target="_blank" rel="noopener noreferrer" className="text-[#143352] underline">
                   github.com/joelrobic-gif/prompt-dolphin
                 </a>
-                . The <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">assemble()</code> function is string concatenation only — no <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">fetch()</code>, no <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">XMLHttpRequest</code>, no WebSocket, no beacon.
+                . The <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">engineerV3()</code> function (in <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">spike/lib/engine-v3.ts</code>) is string assembly only: no <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">fetch()</code>, no <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">XMLHttpRequest</code>, no WebSocket, no beacon.
               </p>
             </div>
 
             <div>
               <p className="font-semibold text-[#143352] mb-1">4. Run it offline (the proof)</p>
               <p className="text-[#4A5A6E] leading-relaxed">
-                Clone the repo. Run <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">npm install && npm run build</code>. Serve the output locally with no internet connection after the initial download. It works identically. That is the proof.
+                Clone the repo. Run <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">cd spike && npm install && npm run build</code> (the app lives in the <code className="bg-[#E8EFF5] text-[#143352] px-1.5 py-0.5 rounded font-mono text-xs">spike/</code> directory). Serve the output locally with no internet connection after the initial download. It works identically. That is the proof.
               </p>
             </div>
           </div>
+        </section>
+
+        <section className="mb-12">
+          <h2 className="text-2xl font-serif text-[#143352] mb-4" style={{ fontFamily: 'ui-serif, Georgia, "EB Garamond", serif' }}>
+            One documented exception: voice dictation
+          </h2>
+          <p className="text-sm text-[#0E1A2A] leading-relaxed mb-3">
+            The optional microphone button uses your browser&apos;s built-in Web Speech
+            API. In some browsers (notably Chrome), the browser itself sends the
+            audio to its vendor&apos;s speech service (Google) for transcription. That
+            traffic comes from the browser, not from our code, and it only happens
+            if you tap the mic. Typing never triggers it. If your policy forbids
+            cloud speech processing, simply don&apos;t use the mic button: everything
+            else runs entirely on-device.
+          </p>
         </section>
 
         <section className="mb-12">

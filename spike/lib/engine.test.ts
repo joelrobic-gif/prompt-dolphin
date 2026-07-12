@@ -351,6 +351,43 @@ check('VIZ-DIR: directive never invents data (anti-fabrication present)', () => 
 });
 
 // ---------------------------------------------------------------------------
+// Wave 8: claim-integrity wave (L99 panel 2026-07-12)
+// ---------------------------------------------------------------------------
+
+import { ENGINE_VERSION } from './engine-v3';
+import { QUALITY_AXIS_ORDER } from './engine-v2';
+
+check('W8: ENGINE_VERSION is the single 3.x source of truth', () => {
+  assert(/^3\.\d+\.\d+$/.test(ENGINE_VERSION), `unexpected ENGINE_VERSION: ${ENGINE_VERSION}`);
+});
+
+check('W8: every depth tier has i18n label + blurb (all 5 shown in UI)', () => {
+  const keyMap: Record<string, [string, string]> = {
+    quick_verdict: ['q_quick_label', 'q_quick_blurb'],
+    fast_detailed: ['q_fast_label', 'q_fast_blurb'],
+    comprehensive: ['q_comp_label', 'q_comp_blurb'],
+    strategic_depth: ['q_strat_label', 'q_strat_blurb'],
+    exhaustive_research: ['q_exh_label', 'q_exh_blurb'],
+  };
+  assert(QUALITY_AXIS_ORDER.length === 5, `expected 5 tiers, got ${QUALITY_AXIS_ORDER.length}`);
+  for (const qid of QUALITY_AXIS_ORDER) {
+    const pair = keyMap[qid];
+    assert(pair, `no i18n key mapping for tier ${qid}`);
+    for (const k of pair) {
+      const v = (TRANSLATIONS.en as Record<string, string>)[k];
+      assert(v && v.length > 0, `missing en value for ${k} (tier ${qid})`);
+    }
+  }
+});
+
+check('W8: voice privacy note exists and is honest about Chrome/Google', () => {
+  const v = (TRANSLATIONS.en as Record<string, string>)['voice_privacy_note'];
+  assert(v && v.length > 0, 'voice_privacy_note missing');
+  assert(/Google/.test(v), 'note must name where Chrome sends audio');
+  assert(/Typing never leaves/.test(v), 'note must reaffirm the typing guarantee');
+});
+
+// ---------------------------------------------------------------------------
 // Report
 // ---------------------------------------------------------------------------
 

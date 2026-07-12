@@ -3,6 +3,7 @@ import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
 import {
   QUALITY_AXIS,
+  QUALITY_AXIS_ORDER,
   ARCHETYPES,
   OUTPUT_FORMATS,
   OUTPUT_FORMAT_ORDER,
@@ -11,9 +12,11 @@ import {
   type OutputFormatId,
 } from "@/lib/engine-v2";
 
-const UI_QUALITY_ORDER: QualityId[] = ['quick_verdict', 'comprehensive', 'exhaustive_research'];
+// All five engine depth tiers, in engine order (labels/blurbs exist in i18n for each).
+const UI_QUALITY_ORDER: readonly QualityId[] = QUALITY_AXIS_ORDER;
 import {
   engineerV3 as engineer,
+  ENGINE_VERSION,
   type EngineerV3Result as EngineerResult,
 } from "@/lib/engine-v3";
 import {
@@ -87,7 +90,7 @@ function buildFeedbackPayload(args: {
   lines.push(`- Task length: ${args.task.length} chars (content withheld)`);
   lines.push(`- User constraints count: ${args.userConstraints.split("\n").filter((s) => s.trim()).length} (content withheld)`);
   lines.push("");
-  lines.push(`Engine version: v2.0.0`);
+  lines.push(`Engine version: v${ENGINE_VERSION}`);
   lines.push(`Generated: ${new Date().toISOString()}`);
   return lines.join("\n");
 }
@@ -141,7 +144,6 @@ export default function Home() {
   const [rating, setRating] = useState<number>(0);
   const [feedbackStatus, setFeedbackStatus] = useState<"" | "copied" | "emailed">("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const heroImgRef = useRef<HTMLDivElement>(null);
 
   const T = useMemo(() => (k: Parameters<typeof translate>[0]) => translate(k, lang), [lang]);
   const dir = LANGUAGES[lang].dir;
@@ -161,33 +163,6 @@ export default function Home() {
       document.documentElement.dir = dir;
     }
   }, [lang, dir]);
-
-  // Parallax hero — translate + scale dolphin image with scroll
-  useEffect(() => {
-    let raf = 0;
-    const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        const y = window.scrollY;
-        const el = heroImgRef.current?.querySelector("img");
-        if (el) {
-          // Parallax: image moves down ~25% of scroll, scales up slightly
-          // Subtle so it feels premium not gimmicky
-          const translate = Math.min(y * 0.28, 200);
-          const scale = 1 + Math.min(y * 0.00015, 0.06);
-          (el as HTMLElement).style.transform = `translate3d(0, ${translate}px, 0) scale(${scale})`;
-          (el as HTMLElement).style.willChange = "transform";
-        }
-      });
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, []);
 
   const constraintsList = useMemo(
     () => userConstraints.split("\n").map((s) => s.trim()).filter(Boolean),
@@ -456,7 +431,10 @@ export default function Home() {
     setUserExample("");
     setRefineOpen(false);
     setQuality("comprehensive");
-    setOutputFormat("text");
+    // Match first-load defaults exactly (initial state is html + claude, auto-adopt on).
+    setOutputFormat("html");
+    setAdapter("claude");
+    setAdapterOverridden(false);
     setCopied(false);
     setHarnessKind(null);
     setHarnessText("");
@@ -470,9 +448,8 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#F5F9FC]" dir={dir}>
 
-      {/* Hero (parallax) */}
+      {/* Hero (static image, charter-compliant) */}
       <section
-        ref={heroImgRef}
         className="relative w-full h-[60vh] min-h-[380px] sm:min-h-[420px] md:min-h-[480px] max-h-[720px] overflow-hidden"
       >
         <Image
@@ -676,13 +653,18 @@ export default function Home() {
               <button onClick={() => setVoiceError("")} className="text-[#8B3A2E] hover:text-[#0E1A2A] shrink-0" aria-label="Dismiss">×</button>
             </div>
           )}
+          {isListening && (
+            <p className="mt-6 text-[10px] text-[#8FA6BC] leading-snug">
+              {T("voice_privacy_note")}
+            </p>
+          )}
 
           {/* Quality Axis — PRIMARY CONTROL */}
           <div className="mt-5">
             <p className="text-xs text-[#4A5A6E] mb-2 font-semibold uppercase tracking-wider">
               {T("depth_heading")}
             </p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
               {UI_QUALITY_ORDER.map((qid) => {
                 const active = quality === qid;
                 const labelKey = (
@@ -721,6 +703,16 @@ export default function Home() {
                 );
               })}
             </div>
+            {/* Full blurb of the selected tier (cards truncate to the first sentence) */}
+            <p className="mt-2 text-[11px] text-[#4A5A6E] leading-snug">
+              {T((
+                quality === "quick_verdict" ? "q_quick_blurb"
+                : quality === "fast_detailed" ? "q_fast_blurb"
+                : quality === "comprehensive" ? "q_comp_blurb"
+                : quality === "strategic_depth" ? "q_strat_blurb"
+                : "q_exh_blurb"
+              ) as Parameters<typeof translate>[0])}
+            </p>
           </div>
 
           {/* Output format — compact dropdown */}
@@ -737,12 +729,11 @@ export default function Home() {
               >
                 {OUTPUT_FORMAT_ORDER.map((fid) => {
                   const f = OUTPUT_FORMATS[fid];
-                  const prefix = f.recommended ? '✨ ' : '';
                   const suffix = f.timeEstimate ? `  ·  ${f.timeEstimate}` : '';
                   const recTag = f.recommended ? '  ·  Recommended' : '';
                   return (
                     <option key={fid} value={fid}>
-                      {prefix}{f.icon} · {f.label}{recTag}{suffix}
+                      {f.icon} · {f.label}{recTag}{suffix}
                     </option>
                   );
                 })}
@@ -769,12 +760,12 @@ export default function Home() {
           )}
           {outputFormat === "html" && (
             <p className="mt-1 text-[10px] text-[#143352] leading-snug">
-              ✨ <strong>HTML is the most impressive format</strong> — magazine-grade design, opens in any browser, prints to PDF beautifully. Takes {OUTPUT_FORMATS.html.timeEstimate} to render.
+              <strong>HTML is the most impressive format</strong>: magazine-grade design, opens in any browser, prints to PDF beautifully. Takes {OUTPUT_FORMATS.html.timeEstimate} to render.
             </p>
           )}
           {outputFormat !== "html" && outputFormat !== "text" && OUTPUT_FORMATS[outputFormat]?.timeEstimate && (
             <p className="mt-1 text-[10px] text-[#4A5A6E] leading-snug">
-              ⏱ Takes ~{OUTPUT_FORMATS[outputFormat].timeEstimate} to render. Want the most polished output? Try ✨ HTML.
+              Takes ~{OUTPUT_FORMATS[outputFormat].timeEstimate} to render. Want the most polished output? Try HTML.
             </p>
           )}
 
@@ -1337,14 +1328,14 @@ export default function Home() {
           <span>·</span>
           <a href="/privacy" className="hover:text-[#F5F9FC] transition-colors">{T("footer_privacy")}</a>
           <span>·</span>
-          <a href="https://github.com/joelrobic-gif/promptdolphin-engine" target="_blank" rel="noopener noreferrer" className="hover:text-[#F5F9FC] transition-colors">
+          <a href="https://github.com/joelrobic-gif/prompt-dolphin" target="_blank" rel="noopener noreferrer" className="hover:text-[#F5F9FC] transition-colors">
             {T("footer_oss")}
           </a>
           <span>·</span>
           <span>{T("footer_no_cookies")}</span>
         </p>
         <p className="text-[10px] text-[#4A5A6E] mt-3">
-          {T("footer_legal")}
+          {T("footer_legal")} · Engine v{ENGINE_VERSION}
         </p>
       </footer>
 
